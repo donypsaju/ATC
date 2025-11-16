@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWD Reservation Issues: Kerala Aided Schools</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+               line-height: 1.6; background-color: #f4f4f4; color: #333; 
+               max-width: 900px; margin: 20px auto; padding: 15px; }
+        .container { background-color: #fff; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        h1, h2 { color: #b90000; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h1 { text-align: center; }
+        .issue { background-color: #fffaf0; border: 1px solid #ffe6b8; 
+                 padding: 15px; margin-bottom: 15px; border-radius: 5px; }
+        .chart-container { width: 100%; margin-top: 30px; }
+        footer { text-align: center; margin-top: 20px; font-size: 0.9em; color: #777; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>The Crisis in PWD Reservation for Kerala Aided Schools</h1>
+        
+        <p>The implementation of the PWD Act in Kerala's aided schools is facing critical failures. While intended to provide reservation, the process is stalled, creating a chain reaction that harms candidates, stalls appointments, and ultimately violates students' Right to Education. This page outlines the core issues based on public data.</p>
+
+        <h2>Issue 01: Drastic Mismatch in Supply vs. Demand</h2>
+        <div class="issue">
+            <p><strong>The Problem:</strong> There is a fundamental mismatch between the number of reserved vacancies and the number of qualified PWD candidates available in employment exchanges.</p>
+            <p>The chart below compares the total posts to be filled (Demand, from Samanwaya) with the total available candidates (Supply, from RTI data). The data clearly shows there are not enough qualified candidates to fill the backlog.</p>
+        </div>
+        <div class="chart-container">
+            <canvas id="supplyDemandChart"></canvas>
+        </div>
+
+        <h2>Issue 02 & 03: Pending Verification and Unapproved Posts</h2>
+        <div class="issue">
+            <p><strong>The Problem:</strong> The roster verification process is catastrophically slow, and as a direct result, thousands of teacher appointments are left unapproved.</p>
+            <ul>
+                <li><strong><span id="verifiedCount">--</span> / <span id="totalSchoolCount">--</span> schools</strong> have been verified, showing the slow pace.</li>
+                <li>The chart below shows the status of posts scraped from the Samanwaya portal. The "Not Approved" and "Not Appointed" bars represent thousands of posts in limbo, freezing appointments for all candidates (PWD and non-PWD).</li>
+            </ul>
+        </div>
+        <div class="chart-container">
+            <canvas id="postStatusChart"></canvas>
+        </div>
+
+        <h2>Issue 04: Violation of Students' Right to Education</h2>
+        <div class="issue">
+            <p><strong>The Final Impact:</strong> The direct consequence of thousands of unapproved and vacant posts is a severe shortage of adequate staff in schools.</p>
+            <p>This is not just an administrative problem; it is a direct violation of the Right to Education (RTE) Act. Students are being denied qualified teachers because the administrative process for reservation is broken. This backlog must be cleared to protect the rights of students.</p>
+            <p>The total number of posts **not yet appointed** due to this process is: <strong style="font-size: 1.2em;" id="notAppointedTotal">--</strong>.</p>
+        </div>
+    </div>
+
+    <footer>
+        Data sourced from Samanwaya (Public Roster) and RTI replies.
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="app.js"></script>
+</body>
+</html>
