@@ -251,9 +251,9 @@ function processCandidateData(filter) {
                 supplyByPost[catKey] = (supplyByPost[catKey] || 0) + total;
                 
                 // --- THIS IS THE CHANGE ---
-                // Map the new JSON keys (VisuallyImpaired) to the display keys
-                supplyByDisability['Visually Impaired'] += data.VisuallyImpaired || 0;
-                supplyByDisability['Hearing Impairment'] += data.HearingImpairment || 0;
+                // Map the new JSON keys (Visually_Impaired) to the display keys
+                supplyByDisability['Visually Impaired'] += data.Visually_Impaired || 0;
+                supplyByDisability['Hearing Impairment'] += data.Hearing_Impairment || 0;
                 supplyByDisability['LD'] += data.LD || 0;
                 supplyByDisability['Others'] += data.Others || 0;
             }
@@ -447,8 +447,8 @@ function renderCandidateCard(entry) {
             datasets: [
                 // --- THIS IS THE CHANGE ---
                 // Update the labels and data keys
-                { label: 'Visually Impaired', data: labels.map(l => entry[l].VisuallyImpaired), backgroundColor: CHART_COLORS.blue, },
-                { label: 'Hearing Impairment', data: labels.map(l => entry[l].HearingImpairment), backgroundColor: CHART_COLORS.orange, },
+                { label: 'Visually Impaired', data: labels.map(l => entry[l].Visually_Impaired), backgroundColor: CHART_COLORS.blue, },
+                { label: 'Hearing Impairment', data: labels.map(l => entry[l].Hearing_Impairment), backgroundColor: CHART_COLORS.orange, },
                 { label: 'LD', data: labels.map(l => entry[l].LD), backgroundColor: CHART_COLORS.green, },
                 { label: 'Others', data: labels.map(l => entry[l].Others), backgroundColor: CHART_COLORS.grey, },
             ]
