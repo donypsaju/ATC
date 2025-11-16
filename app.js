@@ -3,35 +3,38 @@ let allRosterData = [];
 let allCandidateData = [];
 let chartInstances = {}; // To manage and destroy old charts
 
-// --- Chart Colors ---
+// --- Chart Colors (Bootstrap 5 Dark-Theme Friendly) ---
 const CHART_COLORS = {
+    blue: 'rgb(54, 162, 235)',
+    green: 'rgb(75, 192, 192)',
     red: 'rgb(255, 99, 132)',
     orange: 'rgb(255, 159, 64)',
-    green: 'rgb(75, 192, 192)',
-    blue: 'rgb(54, 162, 235)',
     purple: 'rgb(153, 102, 255)',
-    grey: 'rgb(201, 203, 207)',
-    darkgrey: 'rgb(101, 103, 107)'
+    grey: 'rgb(101, 103, 107)',
 };
 
-// --- Category Mappings ---
+// --- Category Mappings (More accurate) ---
+// Note: This mapping is based on your data. You may need to adjust which categories map to which post.
+// "LPST" = Cat 1 (Primary)
+// "UPST" = Cat 2 (High School)
+// "NonTeaching" = Cat 3
+// "HST" = Cat 4 (HSST Sr.) -> This is a guess, adjust if wrong
+// "HSST" = Cat 5, 6, 7
+
 const ROSTER_CATEGORY_MAP = {
     'LPST': ['category_01'],
-    'UPST': ['category_02'], // Assuming UPST is cat 2
+    'UPST': ['category_02'],
     'NonTeaching': ['category_03'],
-    'HST': ['category_04'], // Assuming HST is cat 4 (HSST Sr.)
-    'HSST': ['category_05', 'category_06', 'category_07'], // Assuming HSST is all others
+    'HST': ['category_04'], // Guess: HSST Sr.
+    'HSST': ['category_05', 'category_06', 'category_07'], // Guess: HSST Jr, VHST Sr, VHST Jr
     'Primary': ['category_01', 'category_02'],
 };
 ROSTER_CATEGORY_MAP.Teaching = [
-    ...ROSTER_CATEGORY_MAP.LPST,
-    ...ROSTER_CATEGORY_MAP.UPST,
-    ...ROSTER_CATEGORY_MAP.HST,
-    ...ROSTER_CATEGORY_MAP.HSST
+    ...ROSTER_CATEGORY_MAP.LPST, ...ROSTER_CATEGORY_MAP.UPST,
+    ...ROSTER_CATEGORY_MAP.HST, ...ROSTER_CATEGORY_MAP.HSST
 ];
 ROSTER_CATEGORY_MAP.All = [
-    ...ROSTER_CATEGORY_MAP.Teaching,
-    ...ROSTER_CATEGORY_MAP.NonTeaching
+    ...ROSTER_CATEGORY_MAP.Teaching, ...ROSTER_CATEGORY_MAP.NonTeaching
 ];
 
 const CANDIDATE_CATEGORY_MAP = {
@@ -43,14 +46,11 @@ const CANDIDATE_CATEGORY_MAP = {
     'Primary': ['LPST', 'UPST'],
 };
 CANDIDATE_CATEGORY_MAP.Teaching = [
-    ...CANDIDATE_CATEGORY_MAP.LPST,
-    ...CANDIDATE_CATEGORY_MAP.UPST,
-    ...CANDIDATE_CATEGORY_MAP.HST,
-    ...CANDIDATE_CATEGORY_MAP.HSST
+    ...CANDIDATE_CATEGORY_MAP.LPST, ...CANDIDATE_CATEGORY_MAP.UPST,
+    ...CANDIDATE_CATEGORY_MAP.HST, ...CANDIDATE_CATEGORY_MAP.HSST
 ];
 CANDIDATE_CATEGORY_MAP.All = [
-    ...CANDIDATE_CATEGORY_MAP.Teaching,
-    ...CANDIDATE_CATEGORY_MAP.NonTeaching
+    ...CANDIDATE_CATEGORY_MAP.Teaching, ...CANDIDATE_CATEGORY_MAP.NonTeaching
 ];
 
 // --- Initialization ---
@@ -94,12 +94,9 @@ async function loadAllData() {
         allRosterData = await rosterResponse.json();
         allCandidateData = await candidatesResponse.json();
 
-        // Once data is loaded, populate static elements
         document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
         populateSearchFilters();
-        
-        // Trigger the first dashboard render
-        updateDashboard();
+        updateDashboard(); // Initial render
 
     } catch (error) {
         console.error("Failed to load or process data:", error);
@@ -111,26 +108,35 @@ async function loadAllData() {
  * Sets up listeners for all filters
  */
 function setupFilterListeners() {
-    document.getElementById('filter-main').addEventListener('change', () => {
-        const mainFilter = document.getElementById('filter-main').value;
-        const subFilterContainer = document.getElementById('sub-filter-container');
-        
-        // Show/hide sub-filter
-        subFilterContainer.style.display = (mainFilter === 'Teaching') ? 'flex' : 'none';
-        
-        // Reset sub-filter when main changes
-        if(mainFilter !== 'Teaching') {
-             document.getElementById('filter-sub').value = "All";
+    // Main filter button group
+    document.getElementById('filter-main').addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            // Update active state
+            const buttons = e.currentTarget.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            // Show/hide sub-filter
+            const mainFilter = e.target.dataset.filter;
+            const subFilterContainer = document.getElementById('sub-filter-container');
+            subFilterContainer.style.display = (mainFilter === 'Teaching') ? 'block' : 'none';
+            
+            updateDashboard();
         }
-        
-        updateDashboard();
     });
     
-    document.getElementById('filter-sub').addEventListener('change', updateDashboard);
+    // Sub-filter button group
+    document.getElementById('filter-sub').addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON') {
+            const buttons = e.currentTarget.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+            updateDashboard();
+        }
+    });
     
-    // UPDATED: Use 'input' event for search-as-you-type feel
-    document.getElementById('management-search').addEventListener('input', handleManagementSearch);
-    document.getElementById('candidate-search').addEventListener('input', handleCandidateSearch);
+    // Global search input
+    document.getElementById('global-search').addEventListener('input', handleGlobalSearch);
 }
 
 /**
@@ -139,11 +145,10 @@ function setupFilterListeners() {
 function updateDashboard() {
     const filter = getActiveFilter();
     
-    // 1. Process data based on filter
     const rosterStats = processRosterData(filter);
     const candidateStats = processCandidateData(filter);
     
-    // 2. Render KPI Cards
+    // Render KPI Cards
     const verificationRate = rosterStats.totalSchools > 0 ? ((rosterStats.totalVerified / rosterStats.totalSchools) * 100).toFixed(1) : 0;
     
     document.getElementById('kpi-total-limbo').textContent = rosterStats.totalLimbo.toLocaleString();
@@ -151,7 +156,7 @@ function updateDashboard() {
     document.getElementById('kpi-verification-rate').textContent = `${verificationRate}%`;
     document.getElementById('kpi-verification-count').textContent = `(${rosterStats.totalVerified} / ${rosterStats.totalSchools})`;
 
-    // 3. Render Charts
+    // Render Charts
     renderSupplyDemandChart(rosterStats.totalDemand, candidateStats.totalSupply);
     renderVerificationChart(rosterStats.totalVerified, rosterStats.totalSchools);
     renderPostStatusChart(rosterStats.categoryTotals);
@@ -160,29 +165,20 @@ function updateDashboard() {
 }
 
 /**
- * Reads the current filter dropdowns
+ * Reads the current filter buttons
  */
 function getActiveFilter() {
-    const main = document.getElementById('filter-main').value; // All, Teaching, NonTeaching
-    let sub = document.getElementById('filter-sub').value; // All, LPST, etc.
+    const mainFilterBtn = document.querySelector('#filter-main .btn.active');
+    const main = mainFilterBtn ? mainFilterBtn.dataset.filter : 'All';
     
-    // If main filter isn't Teaching, ignore sub-filter
-    if (main !== 'Teaching') {
-        sub = 'All'; // Treat as 'All'
+    let sub = 'All';
+    if (main === 'Teaching') {
+        const subFilterBtn = document.querySelector('#filter-sub .btn.active');
+        sub = subFilterBtn ? subFilterBtn.dataset.filter : 'All';
     }
-    
-    // If sub-filter is 'All', the true filter is the main 'Teaching' one
-    if (main === 'Teaching' && sub === 'All') {
-         return { type: 'Teaching' };
-    }
-    
-    // If a sub-filter is chosen, it's the most specific
-    if (sub !== 'All') {
-        return { type: sub }; // LPST, Primary, HST...
-    }
-    
-    // Otherwise, it's the main filter
-    return { type: main }; // All, NonTeaching
+
+    if (main === 'Teaching' && sub !== 'All') return { type: sub }; // LPST, Primary, etc.
+    return { type: main }; // All, Teaching, NonTeaching
 }
 
 /**
@@ -190,11 +186,8 @@ function getActiveFilter() {
  */
 function processRosterData(filter) {
     let totalVerified = 0, totalSchools = 0, totalLimbo = 0, totalDemand = 0;
+    const keysToProcess = ROSTER_CATEGORY_MAP[filter.type] || [];
     
-    // Get the roster category keys to process (e.g., ['category_01', 'category_02'])
-    const keysToProcess = ROSTER_CATEGORY_MAP[filter.type];
-    
-    // Reset category totals object
     const categoryTotals = {
         'Not Appointed': 0,
         'Not Approved': 0,
@@ -202,7 +195,6 @@ function processRosterData(filter) {
     };
 
     allRosterData.forEach(entry => {
-        // Verification status is always calculated, regardless of filter
         totalVerified += entry.verf_status[0] || 0;
         totalSchools += entry.verf_status[1] || 0;
 
@@ -231,11 +223,10 @@ function processRosterData(filter) {
  */
 function processCandidateData(filter) {
     let totalSupply = 0;
-    const supplyByPost = {}; // For candidate supply chart
+    const supplyByPost = {};
     const supplyByDisability = { 'Blind': 0, 'Deaf': 0, 'Handi': 0, 'Others': 0 };
     
-    // Get the candidate category keys to process (e.g., ['LPST', 'UPST'])
-    const keysToProcess = CANDIDATE_CATEGORY_MAP[filter.type];
+    const keysToProcess = CANDIDATE_CATEGORY_MAP[filter.type] || [];
 
     allCandidateData.forEach(entry => {
         keysToProcess.forEach(catKey => {
@@ -244,11 +235,8 @@ function processCandidateData(filter) {
                 const total = data.Total || 0;
                 
                 totalSupply += total;
-                
-                // Add to supply by post (for chart)
                 supplyByPost[catKey] = (supplyByPost[catKey] || 0) + total;
                 
-                // Add to supply by disability (for chart)
                 supplyByDisability.Blind += data.Blind || 0;
                 supplyByDisability.Deaf += data.Deaf || 0;
                 supplyByDisability.Handi += data.Handi || 0;
@@ -266,19 +254,20 @@ function destroyChart(name) {
     if (chartInstances[name]) chartInstances[name].destroy();
 }
 
+// Config for all charts
+Chart.defaults.color = '#ccc';
+Chart.defaults.borderColor = '#555';
+
 function renderSupplyDemandChart(demand, supply) {
     const ctx = document.getElementById('supplyDemandChart').getContext('2d');
     destroyChart('supplyDemand');
     chartInstances.supplyDemand = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Total Posts (Demand)', 'Available Candidates (Supply)'],
-            datasets: [{
-                data: [demand, supply],
-                backgroundColor: [CHART_COLORS.red, CHART_COLORS.blue],
-            }]
+            labels: ['Posts (Demand)', 'Candidates (Supply)'],
+            datasets: [{ data: [demand, supply], backgroundColor: [CHART_COLORS.red, CHART_COLORS.blue] }]
         },
-        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } } }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
 }
 
@@ -289,10 +278,7 @@ function renderVerificationChart(verified, total) {
         type: 'doughnut',
         data: {
             labels: ['Verified', 'Pending'],
-            datasets: [{
-                data: [verified, total - verified],
-                backgroundColor: [CHART_COLORS.green, CHART_COLORS.darkgrey],
-            }]
+            datasets: [{ data: [verified, total - verified], backgroundColor: [CHART_COLORS.green, CHART_COLORS.grey] }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
@@ -302,15 +288,12 @@ function renderPostStatusChart(categoryTotals) {
     const ctx = document.getElementById('postStatusChart').getContext('2d');
     destroyChart('postStatus');
     chartInstances.postStatus = new Chart(ctx, {
-        type: 'bar',
+        type: 'doughnut',
         data: {
             labels: Object.keys(categoryTotals),
-            datasets: [{
-                data: Object.values(categoryTotals),
-                backgroundColor: [CHART_COLORS.orange, CHART_COLORS.red, CHART_COLORS.green],
-            }]
+            datasets: [{ data: Object.values(categoryTotals), backgroundColor: [CHART_COLORS.orange, CHART_COLORS.red, CHART_COLORS.green] }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 }
 
@@ -321,10 +304,7 @@ function renderCandidateSupplyChart(supplyByPost) {
         type: 'bar',
         data: {
             labels: Object.keys(supplyByPost),
-            datasets: [{
-                data: Object.values(supplyByPost),
-                backgroundColor: [CHART_COLORS.blue, CHART_COLORS.green, CHART_COLORS.purple, CHART_COLORS.orange, CHART_COLORS.grey],
-            }]
+            datasets: [{ data: Object.values(supplyByPost), backgroundColor: CHART_COLORS.blue }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
@@ -334,57 +314,73 @@ function renderCandidateCategoryChart(supplyByDisability) {
     const ctx = document.getElementById('candidateCategoryChart').getContext('2d');
     destroyChart('candidateCategory');
     chartInstances.candidateCategory = new Chart(ctx, {
-        type: 'doughnut',
+        type: 'bar',
         data: {
             labels: Object.keys(supplyByDisability),
-            datasets: [{
-                data: Object.values(supplyByDisability),
-                backgroundColor: [CHART_COLORS.blue, CHART_COLORS.orange, CHART_COLORS.green, CHART_COLORS.grey],
-            }]
+            datasets: [{ data: Object.values(supplyByDisability), backgroundColor: [CHART_COLORS.blue, CHART_COLORS.orange, CHART_COLORS.green, CHART_COLORS.grey] }]
         },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
     });
 }
 
 // --- Interactive Search Filter Logic ---
 
 /**
- * Fills the <datalist> elements for searching
+ * Fills the single <datalist> for global search
  */
 function populateSearchFilters() {
-    const mgmtDatalist = document.getElementById('management-list');
-    allRosterData
-        .sort((a, b) => a.name_of_management.localeCompare(b.name_of_management))
-        .forEach(entry => {
-            const option = new Option(entry.name_of_management, entry.name_of_management);
-            mgmtDatalist.appendChild(option);
-        });
+    const datalist = document.getElementById('global-search-list');
+    
+    allRosterData.forEach(entry => {
+        const option = new Option(entry.name_of_management, entry.name_of_management);
+        datalist.appendChild(option);
+    });
 
-    const candDatalist = document.getElementById('candidate-list');
-    allCandidateData
-        .sort((a, b) => a.Office_Name.localeCompare(b.Office_Name))
-        .forEach(entry => {
-            const option = new Option(entry.Office_Name, entry.Office_Name);
-            candDatalist.appendChild(option);
-        });
+    allCandidateData.forEach(entry => {
+        const option = new Option(entry.Office_Name, entry.Office_Name);
+        datalist.appendChild(option);
+    });
 }
 
 /**
- * Handles selection from the Management search
+ * Handles input from the global search bar
  */
-function handleManagementSearch(e) {
+function handleGlobalSearch(e) {
     const selectedName = e.target.value;
-    const container = document.getElementById('management-details-container');
-    const entry = allRosterData.find(m => m.name_of_management === selectedName);
+    const resultsRow = document.getElementById('search-results-row');
+    const mgmtContainer = document.getElementById('management-details-container');
+    const candContainer = document.getElementById('candidate-details-container');
 
-    if (!entry) {
-        container.style.display = 'none';
-        return;
+    const mgmtEntry = allRosterData.find(m => m.name_of_management === selectedName);
+    const candEntry = allCandidateData.find(m => m.Office_Name === selectedName);
+
+    // Hide both by default
+    mgmtContainer.style.display = 'none';
+    candContainer.style.display = 'none';
+
+    if (mgmtEntry) {
+        // Show Management Card
+        renderManagementCard(mgmtEntry);
+        mgmtContainer.style.display = 'block';
+        resultsRow.style.display = 'flex';
+    } else if (candEntry) {
+        // Show Candidate Card
+        renderCandidateCard(candEntry);
+        candContainer.style.display = 'block';
+        resultsRow.style.display = 'flex';
+    } else if (!selectedName) {
+        // Hide row if search is cleared
+        resultsRow.style.display = 'none';
     }
-    
+}
+
+/**
+ * Populates the Management search result card
+ */
+function renderManagementCard(entry) {
     let totalLimbo = 0;
     let tableHtml = `
-        <thead>
+        <thead class="table-light">
             <tr>
                 <th>Category</th>
                 <th>Manager Appointed</th>
@@ -396,8 +392,8 @@ function handleManagementSearch(e) {
     `;
 
     for (let i = 1; i <= 7; i++) {
-        const catKey = `category_${String(i).padStart(2, '0')}`;
         const catName = getCategoryName(i);
+        const catKey = `category_${String(i).padStart(2, '0')}`;
         let row = { not_approved: 0, not_appointed: 0, manager_appo: 0 };
         
         if (entry[catKey] && entry[catKey].length > 0) {
@@ -420,24 +416,13 @@ function handleManagementSearch(e) {
     document.getElementById('mgmt-kpi-status').textContent = `${entry.verf_status[0]} / ${entry.verf_status[1]}`;
     document.getElementById('mgmt-kpi-limbo').textContent = totalLimbo;
     document.getElementById('management-table').innerHTML = tableHtml;
-    container.style.display = 'block';
 }
 
 /**
- * Handles selection from the Candidate Office search
+ * Renders the chart for the Candidate search result card
  */
-function handleCandidateSearch(e) {
-    const selectedName = e.target.value;
-    const container = document.getElementById('candidate-details-container');
-    const entry = allCandidateData.find(m => m.Office_Name === selectedName);
-
-    if (!entry) {
-        container.style.display = 'none';
-        return;
-    }
-
+function renderCandidateCard(entry) {
     document.getElementById('office-name').textContent = `Office: ${entry.Office_Name}`;
-    container.style.display = 'block';
     
     const ctx = document.getElementById('candidateOfficeChart').getContext('2d');
     destroyChart('candidate');
@@ -462,13 +447,10 @@ function handleCandidateSearch(e) {
     });
 }
 
-// --- Helper Functions ---
+/**
+* Helper to get simple category names
+*/
 function getCategoryName(index) {
-    const names = [
-        'Category - 1 (Primary)', 'Category - 2 (High School)', 'Category - 3 (Non Teaching)',
-        'Category - 4 (HSST Sr.)', 'Category - 5 (HSST Jr.)', 'Category - 6 (VHST Sr.)', 'Category - 7 (VHST Jr.)'
-    ];
-    // This is a guess from your old data. Update this if the names are wrong.
-    const simpleNames = ['LPST', 'UPST', 'Non-Teaching', 'HSST Sr', 'HSST Jr', 'VHST Sr', 'VHST Jr'];
-    return simpleNames[index - 1] || `Category ${index}`;
+    const simpleNames = ['LPST', 'UPST', 'Non-Teaching', 'HST', 'HSST', 'VHST Sr', 'VHST Jr'];
+    return simpleNames[index - 1] || `Cat ${index}`;
 }

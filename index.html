@@ -1,146 +1,214 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PWD Reservation Dashboard: Kerala Aided Schools</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="config.js"></script> <script src="app.js"></script> </head>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <style>
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        .chart-container-large { position: relative; height: 400px; width: 100%; }
+        .chart-container-donut { position: relative; height: 300px; width: 100%; max-width: 300px; margin: 0 auto; }
+        .btn-group-xs .btn { padding: .25rem .5rem; font-size: .875rem; }
+    </style>
+</head>
 <body>
 
-    <header>
-        <h1>PWD Reservation Dashboard: Kerala Aided Schools</h1>
-    </header>
+    <nav class="navbar bg-body-tertiary px-3">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">PWD Reservation Dashboard</a>
+            <form class="d-flex" role="search" onsubmit="return false;">
+                <input class="form-control me-2" type="search" id="global-search" list="global-search-list" placeholder="Search Management or Office..." aria-label="Search">
+                <datalist id="global-search-list"></datalist>
+            </form>
+        </div>
+    </nav>
 
-    <main class="dashboard-grid">
-
-        <div class="card card-full-width" id="metadata">
-            <h2>Data Freshness</h2>
-            <div class="card-kpi-row">
-                <div class="kpi-item">
-                    <span class="kpi-label">Roster Data Last Changed</span>
-                    <span class="kpi-value" id="roster-update-time">Loading...</span>
-                </div>
-                <div class="kpi-item">
-                    <span class="kpi-label">Candidate Data Last Changed</span>
-                    <span class="kpi-value" id="candidate-update-time">Loading...</span>
-                </div>
-            </div>
-            <p>Data is checked for updates every 7 days. This timestamp shows the last time the data *actually changed*.</p>
-        </div>
-
-        <div class="card card-full-width filter-bar">
-            <div class="filter-group">
-                <label for="filter-main">Filter Data By</label>
-                <select id="filter-main">
-                    <option value="All">All Posts</option>
-                    <option value="Teaching">Teaching Posts</option>
-                    <option value="NonTeaching">Non-Teaching Posts</option>
-                </select>
-            </div>
-            <div class="filter-group" id="sub-filter-container" style="display: none;">
-                <label for="filter-sub">Teaching Category</label>
-                <select id="filter-sub">
-                    <option value="All">All Teaching</option>
-                    <option value="Primary">Primary (LP+UP)</option>
-                    <option value="LPST">LPST</option>
-                    <option value="UPST">UPST</option>
-                    <option value="HST">HST</option>
-                    <option value="HSST">HSST</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="card kpi-card">
-            <span class="kpi-label">Total Posts in Limbo</span>
-            <span class="kpi-value" id="kpi-total-limbo">--</span>
-            <span class="kpi-subtext">(Not Approved + Not Appointed)</span>
-        </div>
-        <div class="card kpi-card">
-            <span class="kpi-label">Total Available Candidates</span>
-            <span class="kpi-value" id="kpi-total-supply">--</span>
-            <span class="kpi-subtext">(From RTI Data)</span>
-        </div>
-        <div class="card kpi-card">
-            <span class="kpi-label">Total Schools Verified</span>
-            <span class="kpi-value" id="kpi-verification-rate">--%</span>
-            <span class="kpi-subtext" id="kpi-verification-count">(--/--)</span>
-        </div>
-        <div classs="card kpi-card">
-            <span class="kpi-label">Total Managements Tracked</span>
-            <span class="kpi-value" id="kpi-total-managements">--</span>
-            <span class="kpi-subtext">(Corporate + Individual)</span>
-        </div>
-
-        <div class="card card-chart">
-            <h3>Issue 01: Supply vs. Demand</h3>
-            <div class="chart-container">
-                <canvas id="supplyDemandChart"></canvas>
-            </div>
-        </div>
-        <div class="card card-chart">
-            <h3>Issue 02: Verification Status</h3>
-            <div class="chart-container-donut">
-                <canvas id="verificationChart"></canvas>
-            </div>
-        </div>
-        <div class="card card-chart card-span-2">
-            <h3>Issue 03: Post Status Breakdown (Demand)</h3>
-            <div class="chart-container-large">
-                <canvas id="postStatusChart"></canvas>
-            </div>
-        </div>
-
-        <div class="card card-chart">
-            <h3>Candidates by Post (Supply)</h3>
-            <div class="chart-container">
-                <canvas id="candidateSupplyChart"></canvas>
-            </div>
-        </div>
-        <div class="card card-chart">
-            <h3>Candidates by Disability (Supply)</h3>
-            <div class="chart-container">
-                <canvas id="candidateCategoryChart"></canvas>
-            </div>
-        </div>
-
-        <div class="card card-full-width card-interactive">
-            <h2>Check Your Management</h2>
-            <input type="text" id="management-search" list="management-list" placeholder="Type to search for a management...">
-            <datalist id="management-list"></datalist>
-
-            <div id="management-details-container" style="display: none;">
-                <h3 id="management-name"></h3>
-                <div class="card-kpi-row">
-                    <div class="kpi-item">
-                        <span class="kpi-label">Verification Status</span>
-                        <span class="kpi-value" id="mgmt-kpi-status">--</span>
-                    </div>
-                    <div class="kpi-item">
-                        <span class="kpi-label">Total Posts in Limbo</span>
-                        <span class="kpi-value" id="mgmt-kpi-limbo">--</span>
+    <main class="container-fluid my-3">
+        <div class="row g-3">
+            
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Data Freshness</h5>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="flex-grow-1">
+                                <div class="text-body-secondary small">Roster Data Last Changed</div>
+                                <div class="fs-5" id="roster-update-time">Loading...</div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="text-body-secondary small">Candidate Data Last Changed</div>
+                                <div class="fs-5" id="candidate-update-time">Loading...</div>
+                            </div>
+                        </div>
+                        <p class="card-text small text-body-secondary mt-2 mb-0">
+                            Data is checked for updates every 7 days. This timestamp shows the last time the data *actually changed*.
+                        </p>
                     </div>
                 </div>
-                <div class="table-container">
-                    <table id="management-table"></table>
+            </div>
+
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body d-flex flex-wrap gap-3">
+                        <div class="filter-group">
+                            <div class="text-body-secondary small mb-1">Filter Data By</div>
+                            <div class="btn-group" role="group" id="filter-main">
+                                <button type="button" class="btn btn-outline-primary active" data-filter="All">All Posts</button>
+                                <button type="button" class="btn btn-outline-primary" data-filter="Teaching">Teaching</button>
+                                <button type="button" class="btn btn-outline-primary" data-filter="NonTeaching">Non-Teaching</button>
+                            </div>
+                        </div>
+                        <div class="filter-group" id="sub-filter-container" style="display: none;">
+                            <div class="text-body-secondary small mb-1">Teaching Category</div>
+                            <div class="btn-group btn-group-xs flex-wrap" role="group" id="filter-sub">
+                                <button type="button" class="btn btn-outline-secondary active" data-filter="All">All Teaching</button>
+                                <button type="button" class="btn btn-outline-secondary" data-filter="Primary">Primary (LP+UP)</button>
+                                <button type="button" class="btn btn-outline-secondary" data-filter="LPST">LPST</button>
+                                <button type="button" class="btn btn-outline-secondary" data-filter="UPST">UPST</button>
+                                <button type="button" class="btn btn-outline-secondary" data-filter="HST">HST</button>
+                                <button type="button" class="btn btn-outline-secondary" data-filter="HSST">HSST</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="card card-full-width card-interactive">
-            <h2>Check Available Candidates</h2>
-            <input type="text" id="candidate-search" list="candidate-list" placeholder="Type to search for an employment office...">
-            <datalist id="candidate-list"></datalist>
+        <div class="row g-3 my-2">
+            <div class="col-md-6 col-lg-3">
+                <div class="card text-bg-danger h-100">
+                    <div class="card-body">
+                        <div class="text-body-secondary-dark small">Total Posts in Limbo</div>
+                        <div class="fs-1 fw-bold" id="kpi-total-limbo">--</div>
+                        <div class="small">(Not Approved + Not Appointed)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card text-bg-primary h-100">
+                    <div class="card-body">
+                        <div class="text-body-secondary-dark small">Available Candidates</div>
+                        <div class="fs-1 fw-bold" id="kpi-total-supply">--</div>
+                        <div classs="small">(From RTI Data)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-body-secondary small">Schools Verified</div>
+                        <div class="fs-1 fw-bold" id="kpi-verification-rate">--%</div>
+                        <div class="small" id="kpi-verification-count">(--/--)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-body-secondary small">Managements Tracked</div>
+                        <div class="fs-1 fw-bold" id="kpi-total-managements">--</div>
+                        <div class="small">(Corporate + Individual)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <div id="candidate-details-container" style="display: none;">
-                <h3 id="office-name"></h3>
-                <div class="chart-container-large">
-                    <canvas id="candidateOfficeChart"></canvas>
+        <div class="row g-3 my-2">
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Issue 01: Supply vs. Demand</h5>
+                        <div class="chart-container">
+                            <canvas id="supplyDemandChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Issue 03: Post Status (Demand)</h5>
+                        <div class="chart-container-donut">
+                            <canvas id="postStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Issue 02: Verification Status</h5>
+                        <div class="chart-container-donut">
+                            <canvas id="verificationChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Candidates by Post (Supply)</h5>
+                        <div class="chart-container">
+                            <canvas id="candidateSupplyChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">Candidates by Disability (Supply)</h5>
+                        <div class="chart-container">
+                            <canvas id="candidateCategoryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row g-3 my-2" id="search-results-row" style="display: none;">
+            <div class="col-lg-6" id="management-details-container" style="display: none;">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" id="management-name"></h5>
+                        <div class="d-flex flex-wrap gap-3">
+                            <div class="flex-grow-1">
+                                <div class="text-body-secondary small">Verification Status</div>
+                                <div class="fs-4" id="mgmt-kpi-status">--</div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="text-body-secondary small">Total Posts in Limbo</div>
+                                <div class="fs-4" id="mgmt-kpi-limbo">--</div>
+                            </div>
+                        </div>
+                        <div class="table-responsive mt-3">
+                            <table class="table table-sm" id="management-table"></table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6" id="candidate-details-container" style="display: none;">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title" id="office-name"></h5>
+                        <div class="chart-container-large">
+                            <canvas id="candidateOfficeChart"></canvas>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
     </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="config.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
