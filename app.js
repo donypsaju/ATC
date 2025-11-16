@@ -224,7 +224,15 @@ function processRosterData(filter) {
 function processCandidateData(filter) {
     let totalSupply = 0;
     const supplyByPost = {};
-    const supplyByDisability = { 'Blind': 0, 'Deaf': 0, 'Handi': 0, 'Others': 0 };
+    
+    // --- (CHANGE 1 of 3) ---
+    // Initialize the object with the new display labels
+    const supplyByDisability = {
+        'Visually Impaired': 0,
+        'Hearing Impairment': 0,
+        'LD': 0,
+        'Others': 0
+    };
     
     const keysToProcess = CANDIDATE_CATEGORY_MAP[filter.type] || [];
 
@@ -237,10 +245,12 @@ function processCandidateData(filter) {
                 totalSupply += total;
                 supplyByPost[catKey] = (supplyByPost[catKey] || 0) + total;
                 
-                supplyByDisability.Blind += data.Blind || 0;
-                supplyByDisability.Deaf += data.Deaf || 0;
-                supplyByDisability.Handi += data.Handi || 0;
-                supplyByDisability.Others += data.Others || 0;
+                // --- (CHANGE 2 of 3) ---
+                // Map the old data keys (Blind, Deaf, Handi) to the new display keys
+                supplyByDisability['Visually Impaired'] += data.Blind || 0;
+                supplyByDisability['Hearing Impairment'] += data.Deaf || 0;
+                supplyByDisability['LD'] += data.Handi || 0;
+                supplyByDisability['Others'] += data.Others || 0;
             }
         });
     });
@@ -316,6 +326,7 @@ function renderCandidateCategoryChart(supplyByDisability) {
     chartInstances.candidateCategory = new Chart(ctx, {
         type: 'bar',
         data: {
+            // The labels are now automatically the new ones
             labels: Object.keys(supplyByDisability),
             datasets: [{ data: Object.values(supplyByDisability), backgroundColor: [CHART_COLORS.blue, CHART_COLORS.orange, CHART_COLORS.green, CHART_COLORS.grey] }]
         },
@@ -433,9 +444,11 @@ function renderCandidateCard(entry) {
         data: {
             labels: labels,
             datasets: [
-                { label: 'Blind', data: labels.map(l => entry[l].Blind), backgroundColor: CHART_COLORS.blue, },
-                { label: 'Deaf', data: labels.map(l => entry[l].Deaf), backgroundColor: CHART_COLORS.orange, },
-                { label: 'Handicapped', data: labels.map(l => entry[l].Handi), backgroundColor: CHART_COLORS.green, },
+                // --- (CHANGE 3 of 3) ---
+                // Update the labels for the stacked bar chart datasets
+                { label: 'Visually Impaired', data: labels.map(l => entry[l].Blind), backgroundColor: CHART_COLORS.blue, },
+                { label: 'Hearing Impairment', data: labels.map(l => entry[l].Deaf), backgroundColor: CHART_COLORS.orange, },
+                { label: 'LD', data: labels.map(l => entry[l].Handi), backgroundColor: CHART_COLORS.green, },
                 { label: 'Others', data: labels.map(l => entry[l].Others), backgroundColor: CHART_COLORS.grey, },
             ]
         },
