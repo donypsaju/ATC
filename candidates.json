@@ -1,0 +1,192 @@
+[
+  {
+    "Office_Name": 1,
+    "NonTeaching": {
+      "Blind": "PUNALOOR",
+      "Deaf": 39,
+      "Handi": 6,
+      "Others": 8,
+      "Total": 3
+    },
+    "LPST": {
+      "Blind": 17,
+      "Deaf": 1,
+      "Handi": 1,
+      "Others": 4,
+      "Total": 0
+    },
+    "UPST": {
+      "Blind": 6,
+      "Deaf": 0,
+      "Handi": 5,
+      "Others": 0,
+      "Total": 11
+    },
+    "HST": {
+      "Blind": 0,
+      "Deaf": 1,
+      "Handi": 0,
+      "Others": 5,
+      "Total": 0
+    },
+    "HSST": {
+      "Blind": 0,
+      "Deaf": 0,
+      "Handi": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": 2,
+    "NonTeaching": {
+      "Blind": "PALODE",
+      "Deaf": 445,
+      "Handi": 53,
+      "Others": 52,
+      "Total": 187
+    },
+    "LPST": {
+      "Blind": 437,
+      "Deaf": 0,
+      "Handi": 0,
+      "Others": 2,
+      "Total": 0
+    },
+    "UPST": {
+      "Blind": 0,
+      "Deaf": 0,
+      "Handi": 4,
+      "Others": 0,
+      "Total": 4
+    },
+    "HST": {
+      "Blind": 0,
+      "Deaf": 2,
+      "Handi": 0,
+      "Others": 2,
+      "Total": 0
+    },
+    "HSST": {
+      "Blind": 0,
+      "Deaf": 0,
+      "Handi": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": 3,
+    "NonTeaching": {
+      "Blind": "KOLLAM",
+      "Deaf": 2009,
+      "Handi": 264,
+      "Others": 372,
+      "Total": 1311
+    },
+    "LPST": {
+      "Blind": 1947,
+      "Deaf": 5,
+      "Handi": 1,
+      "Others": 6,
+      "Total": 0
+    },
+    "UPST": {
+      "Blind": 9,
+      "Deaf": 3,
+      "Handi": 14,
+      "Others": 0,
+      "Total": 26
+    },
+    "HST": {
+      "Blind": 2,
+      "Deaf": 7,
+      "Handi": 0,
+      "Others": 15,
+      "Total": 3
+    },
+    "HSST": {
+      "Blind": 4,
+      "Deaf": 0,
+      "Handi": 9,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": 4,
+    "NonTeaching": {
+      "Blind": "VAIKOM",
+      "Deaf": 1203,
+      "Handi": 127,
+      "Others": 223,
+      "Total": 637
+    },
+    "LPST": {
+      "Blind": 1192,
+      "Deaf": 0,
+      "Handi": 0,
+      "Others": 2,
+      "Total": 0
+    },
+    "UPST": {
+      "Blind": 0,
+      "Deaf": 0,
+      "Handi": 5,
+      "Others": 0,
+      "Total": 5
+    },
+    "HST": {
+      "Blind": 0,
+      "Deaf": 2,
+      "Handi": 0,
+      "Others": 4,
+      "Total": 0
+    },
+    "HSST": {
+      "Blind": 0,
+      "Deaf": 0,
+      "Handi": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": 5,
+    "NonTeaching": {
+      "Blind": "MANANTHAVADY",
+      "Deaf": 1331,
+      "Handi": 186,
+      "Others": 239,
+      "Total": 682
+    },
+    "LPST": {
+      "Blind": 1331,
+      "Deaf": 1,
+      "Handi": 0,
+      "Others": 1,
+      "Total": 0
+    },
+    "UPST": {
+      "Blind": 1,
+      "Deaf": 1,
+      "Handi": 4,
+      "Others": 0,
+      "Total": 0
+    },
+    "HST": {
+      "Blind": 1,
+      "Deaf": 3,
+      "Handi": 0,
+      "Others": 0,
+      "Total": 0
+    },
+    "HSST": {
+      "Blind": 0,
+      "Deaf": 0,
+      "Handi": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  }
+]
