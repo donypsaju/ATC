@@ -100,7 +100,12 @@ async function loadAllData() {
 
     } catch (error) {
         console.error("Failed to load or process data:", error);
-        alert("Error: Could not load data files.");
+        // Alert the user if Chart.js is missing, as that was the previous error
+        if (typeof Chart === 'undefined') {
+            alert("Error: Chart.js library is missing. Please check the index.html file.");
+        } else {
+            alert("Error: Could not load data files. Make sure roster_data.json and candidates.json exist.");
+        }
     }
 }
 
@@ -220,12 +225,12 @@ function processRosterData(filter) {
 
 /**
  * Processes candidates.json based on the active filter
+ * === THIS FUNCTION IS UPDATED ===
  */
 function processCandidateData(filter) {
     let totalSupply = 0;
     const supplyByPost = {};
     
-    // --- (CHANGE 1 of 3) ---
     // Initialize the object with the new display labels
     const supplyByDisability = {
         'Visually Impaired': 0,
@@ -245,11 +250,11 @@ function processCandidateData(filter) {
                 totalSupply += total;
                 supplyByPost[catKey] = (supplyByPost[catKey] || 0) + total;
                 
-                // --- (CHANGE 2 of 3) ---
-                // Map the old data keys (Blind, Deaf, Handi) to the new display keys
-                supplyByDisability['Visually Impaired'] += data.Blind || 0;
-                supplyByDisability['Hearing Impairment'] += data.Deaf || 0;
-                supplyByDisability['LD'] += data.Handi || 0;
+                // --- THIS IS THE CHANGE ---
+                // Map the new JSON keys (VisuallyImpaired) to the display keys
+                supplyByDisability['Visually Impaired'] += data.VisuallyImpaired || 0;
+                supplyByDisability['Hearing Impairment'] += data.HearingImpairment || 0;
+                supplyByDisability['LD'] += data.LD || 0;
                 supplyByDisability['Others'] += data.Others || 0;
             }
         });
@@ -326,8 +331,7 @@ function renderCandidateCategoryChart(supplyByDisability) {
     chartInstances.candidateCategory = new Chart(ctx, {
         type: 'bar',
         data: {
-            // The labels are now automatically the new ones
-            labels: Object.keys(supplyByDisability),
+            labels: Object.keys(supplyByDisability), // Already the new labels
             datasets: [{ data: Object.values(supplyByDisability), backgroundColor: [CHART_COLORS.blue, CHART_COLORS.orange, CHART_COLORS.green, CHART_COLORS.grey] }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
@@ -365,22 +369,18 @@ function handleGlobalSearch(e) {
     const mgmtEntry = allRosterData.find(m => m.name_of_management === selectedName);
     const candEntry = allCandidateData.find(m => m.Office_Name === selectedName);
 
-    // Hide both by default
     mgmtContainer.style.display = 'none';
     candContainer.style.display = 'none';
 
     if (mgmtEntry) {
-        // Show Management Card
         renderManagementCard(mgmtEntry);
         mgmtContainer.style.display = 'block';
         resultsRow.style.display = 'flex';
     } else if (candEntry) {
-        // Show Candidate Card
         renderCandidateCard(candEntry);
         candContainer.style.display = 'block';
         resultsRow.style.display = 'flex';
     } else if (!selectedName) {
-        // Hide row if search is cleared
         resultsRow.style.display = 'none';
     }
 }
@@ -431,6 +431,7 @@ function renderManagementCard(entry) {
 
 /**
  * Renders the chart for the Candidate search result card
+ * === THIS FUNCTION IS UPDATED ===
  */
 function renderCandidateCard(entry) {
     document.getElementById('office-name').textContent = `Office: ${entry.Office_Name}`;
@@ -444,11 +445,11 @@ function renderCandidateCard(entry) {
         data: {
             labels: labels,
             datasets: [
-                // --- (CHANGE 3 of 3) ---
-                // Update the labels for the stacked bar chart datasets
-                { label: 'Visually Impaired', data: labels.map(l => entry[l].Blind), backgroundColor: CHART_COLORS.blue, },
-                { label: 'Hearing Impairment', data: labels.map(l => entry[l].Deaf), backgroundColor: CHART_COLORS.orange, },
-                { label: 'LD', data: labels.map(l => entry[l].Handi), backgroundColor: CHART_COLORS.green, },
+                // --- THIS IS THE CHANGE ---
+                // Update the labels and data keys
+                { label: 'Visually Impaired', data: labels.map(l => entry[l].VisuallyImpaired), backgroundColor: CHART_COLORS.blue, },
+                { label: 'Hearing Impairment', data: labels.map(l => entry[l].HearingImpairment), backgroundColor: CHART_COLORS.orange, },
+                { label: 'LD', data: labels.map(l => entry[l].LD), backgroundColor: CHART_COLORS.green, },
                 { label: 'Others', data: labels.map(l => entry[l].Others), backgroundColor: CHART_COLORS.grey, },
             ]
         },
