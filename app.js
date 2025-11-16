@@ -14,13 +14,6 @@ const CHART_COLORS = {
 };
 
 // --- Category Mappings (More accurate) ---
-// Note: This mapping is based on your data. You may need to adjust which categories map to which post.
-// "LPST" = Cat 1 (Primary)
-// "UPST" = Cat 2 (High School)
-// "NonTeaching" = Cat 3
-// "HST" = Cat 4 (HSST Sr.) -> This is a guess, adjust if wrong
-// "HSST" = Cat 5, 6, 7
-
 const ROSTER_CATEGORY_MAP = {
     'LPST': ['category_01'],
     'UPST': ['category_02'],
@@ -100,7 +93,6 @@ async function loadAllData() {
 
     } catch (error) {
         console.error("Failed to load or process data:", error);
-        // Alert the user if Chart.js is missing, as that was the previous error
         if (typeof Chart === 'undefined') {
             alert("Error: Chart.js library is missing. Please check the index.html file.");
         } else {
@@ -116,12 +108,10 @@ function setupFilterListeners() {
     // Main filter button group
     document.getElementById('filter-main').addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
-            // Update active state
             const buttons = e.currentTarget.querySelectorAll('button');
             buttons.forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
             
-            // Show/hide sub-filter
             const mainFilter = e.target.dataset.filter;
             const subFilterContainer = document.getElementById('sub-filter-container');
             subFilterContainer.style.display = (mainFilter === 'Teaching') ? 'block' : 'none';
@@ -251,9 +241,9 @@ function processCandidateData(filter) {
                 supplyByPost[catKey] = (supplyByPost[catKey] || 0) + total;
                 
                 // --- THIS IS THE CHANGE ---
-                // Map the new JSON keys (Visually_Impaired) to the display keys
-                supplyByDisability['Visually Impaired'] += data.Visually_Impaired || 0;
-                supplyByDisability['Hearing Impairment'] += data.Hearing_Impairment || 0;
+                // Map the new camelCase JSON keys to the display keys
+                supplyByDisability['Visually Impaired'] += data.VisuallyImpaired || 0;
+                supplyByDisability['Hearing Impairment'] += data.HearingImpairment || 0;
                 supplyByDisability['LD'] += data.LD || 0;
                 supplyByDisability['Others'] += data.Others || 0;
             }
@@ -446,9 +436,9 @@ function renderCandidateCard(entry) {
             labels: labels,
             datasets: [
                 // --- THIS IS THE CHANGE ---
-                // Update the labels and data keys
-                { label: 'Visually Impaired', data: labels.map(l => entry[l].Visually_Impaired), backgroundColor: CHART_COLORS.blue, },
-                { label: 'Hearing Impairment', data: labels.map(l => entry[l].Hearing_Impairment), backgroundColor: CHART_COLORS.orange, },
+                // Update the labels and data keys to camelCase
+                { label: 'Visually Impaired', data: labels.map(l => entry[l].VisuallyImpaired), backgroundColor: CHART_COLORS.blue, },
+                { label: 'Hearing Impairment', data: labels.map(l => entry[l].HearingImpairment), backgroundColor: CHART_COLORS.orange, },
                 { label: 'LD', data: labels.map(l => entry[l].LD), backgroundColor: CHART_COLORS.green, },
                 { label: 'Others', data: labels.map(l => entry[l].Others), backgroundColor: CHART_COLORS.grey, },
             ]
