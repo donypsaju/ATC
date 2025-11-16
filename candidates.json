@@ -1,19 +1,19 @@
 [
   {
-    "Office_Name": 1,
+    "Office_Name": "PUNALOOR",
     "NonTeaching": {
-      "Blind": "PUNALOOR",
-      "Deaf": 39,
-      "Handi": 6,
-      "Others": 8,
-      "Total": 3
+      "Blind": 6,
+      "Deaf": 8,
+      "Handi": 3,
+      "Others": 0,
+      "Total": 17
     },
     "LPST": {
-      "Blind": 17,
+      "Blind": 1,
       "Deaf": 1,
-      "Handi": 1,
-      "Others": 4,
-      "Total": 0
+      "Handi": 4,
+      "Others": 0,
+      "Total": 6
     },
     "UPST": {
       "Blind": 6,
@@ -23,11 +23,11 @@
       "Total": 11
     },
     "HST": {
-      "Blind": 0,
-      "Deaf": 1,
-      "Handi": 0,
-      "Others": 5,
-      "Total": 0
+      "Blind": 4,
+      "Deaf": 0,
+      "Handi": 1,
+      "Others": 0,
+      "Total": 5
     },
     "HSST": {
       "Blind": 0,
@@ -38,20 +38,20 @@
     }
   },
   {
-    "Office_Name": 2,
+    "Office_Name": "PALODE",
     "NonTeaching": {
-      "Blind": "PALODE",
-      "Deaf": 445,
-      "Handi": 53,
-      "Others": 52,
-      "Total": 187
+      "Blind": 53,
+      "Deaf": 52,
+      "Handi": 187,
+      "Others": 145,
+      "Total": 437
     },
     "LPST": {
-      "Blind": 437,
+      "Blind": 0,
       "Deaf": 0,
-      "Handi": 0,
-      "Others": 2,
-      "Total": 0
+      "Handi": 2,
+      "Others": 0,
+      "Total": 2
     },
     "UPST": {
       "Blind": 0,
@@ -62,10 +62,10 @@
     },
     "HST": {
       "Blind": 0,
-      "Deaf": 2,
-      "Handi": 0,
-      "Others": 2,
-      "Total": 0
+      "Deaf": 0,
+      "Handi": 2,
+      "Others": 0,
+      "Total": 2
     },
     "HSST": {
       "Blind": 0,
@@ -76,20 +76,20 @@
     }
   },
   {
-    "Office_Name": 3,
+    "Office_Name": "KOLLAM",
     "NonTeaching": {
-      "Blind": "KOLLAM",
-      "Deaf": 2009,
-      "Handi": 264,
-      "Others": 372,
-      "Total": 1311
+      "Blind": 264,
+      "Deaf": 372,
+      "Handi": 1311,
+      "Others": 0,
+      "Total": 1947
     },
     "LPST": {
-      "Blind": 1947,
-      "Deaf": 5,
-      "Handi": 1,
-      "Others": 6,
-      "Total": 0
+      "Blind": 5,
+      "Deaf": 1,
+      "Handi": 6,
+      "Others": 0,
+      "Total": 12
     },
     "UPST": {
       "Blind": 9,
@@ -99,35 +99,35 @@
       "Total": 26
     },
     "HST": {
-      "Blind": 2,
-      "Deaf": 7,
-      "Handi": 0,
-      "Others": 15,
-      "Total": 3
+      "Blind": 6,
+      "Deaf": 2,
+      "Handi": 7,
+      "Others": 0,
+      "Total": 15
     },
     "HSST": {
-      "Blind": 4,
-      "Deaf": 0,
-      "Handi": 9,
+      "Blind": 3,
+      "Deaf": 2,
+      "Handi": 4,
       "Others": 0,
-      "Total": 0
+      "Total": 9
     }
   },
   {
-    "Office_Name": 4,
+    "Office_Name": "VAIKOM",
     "NonTeaching": {
-      "Blind": "VAIKOM",
-      "Deaf": 1203,
-      "Handi": 127,
-      "Others": 223,
-      "Total": 637
+      "Blind": 127,
+      "Deaf": 223,
+      "Handi": 637,
+      "Others": 205,
+      "Total": 1192
     },
     "LPST": {
-      "Blind": 1192,
+      "Blind": 0,
       "Deaf": 0,
-      "Handi": 0,
-      "Others": 2,
-      "Total": 0
+      "Handi": 2,
+      "Others": 0,
+      "Total": 2
     },
     "UPST": {
       "Blind": 0,
@@ -137,11 +137,11 @@
       "Total": 5
     },
     "HST": {
-      "Blind": 0,
-      "Deaf": 2,
-      "Handi": 0,
-      "Others": 4,
-      "Total": 0
+      "Blind": 2,
+      "Deaf": 0,
+      "Handi": 2,
+      "Others": 0,
+      "Total": 4
     },
     "HSST": {
       "Blind": 0,
@@ -152,34 +152,34 @@
     }
   },
   {
-    "Office_Name": 5,
+    "Office_Name": "MANANTHAVADY",
     "NonTeaching": {
-      "Blind": "MANANTHAVADY",
-      "Deaf": 1331,
-      "Handi": 186,
-      "Others": 239,
-      "Total": 682
+      "Blind": 186,
+      "Deaf": 239,
+      "Handi": 682,
+      "Others": 224,
+      "Total": 1331
     },
     "LPST": {
-      "Blind": 1331,
-      "Deaf": 1,
-      "Handi": 0,
-      "Others": 1,
-      "Total": 0
+      "Blind": 1,
+      "Deaf": 0,
+      "Handi": 1,
+      "Others": 0,
+      "Total": 2
     },
     "UPST": {
       "Blind": 1,
       "Deaf": 1,
       "Handi": 4,
       "Others": 0,
-      "Total": 0
+      "Total": 6
     },
     "HST": {
-      "Blind": 1,
-      "Deaf": 3,
-      "Handi": 0,
+      "Blind": 0,
+      "Deaf": 1,
+      "Handi": 3,
       "Others": 0,
-      "Total": 0
+      "Total": 4
     },
     "HSST": {
       "Blind": 0,
