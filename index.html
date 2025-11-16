@@ -30,6 +30,28 @@
             <p>Data is checked for updates every 7 days. This timestamp shows the last time the data *actually changed*.</p>
         </div>
 
+        <div class="card card-full-width filter-bar">
+            <div class="filter-group">
+                <label for="filter-main">Filter Data By</label>
+                <select id="filter-main">
+                    <option value="All">All Posts</option>
+                    <option value="Teaching">Teaching Posts</option>
+                    <option value="NonTeaching">Non-Teaching Posts</option>
+                </select>
+            </div>
+            <div class="filter-group" id="sub-filter-container" style="display: none;">
+                <label for="filter-sub">Teaching Category</label>
+                <select id="filter-sub">
+                    <option value="All">All Teaching</option>
+                    <option value="Primary">Primary (LP+UP)</option>
+                    <option value="LPST">LPST</option>
+                    <option value="UPST">UPST</option>
+                    <option value="HST">HST</option>
+                    <option value="HSST">HSST</option>
+                </select>
+            </div>
+        </div>
+
         <div class="card kpi-card">
             <span class="kpi-label">Total Posts in Limbo</span>
             <span class="kpi-value" id="kpi-total-limbo">--</span>
@@ -45,7 +67,7 @@
             <span class="kpi-value" id="kpi-verification-rate">--%</span>
             <span class="kpi-subtext" id="kpi-verification-count">(--/--)</span>
         </div>
-        <div class="card kpi-card">
+        <div classs="card kpi-card">
             <span class="kpi-label">Total Managements Tracked</span>
             <span class="kpi-value" id="kpi-total-managements">--</span>
             <span class="kpi-subtext">(Corporate + Individual)</span>
@@ -57,26 +79,37 @@
                 <canvas id="supplyDemandChart"></canvas>
             </div>
         </div>
-
         <div class="card card-chart">
             <h3>Issue 02: Verification Status</h3>
             <div class="chart-container-donut">
                 <canvas id="verificationChart"></canvas>
             </div>
         </div>
-
-        <div class="card card-full-width card-chart">
-            <h3>Issue 03: Post Status Breakdown (All Managements)</h3>
+        <div class="card card-chart card-span-2">
+            <h3>Issue 03: Post Status Breakdown (Demand)</h3>
             <div class="chart-container-large">
                 <canvas id="postStatusChart"></canvas>
             </div>
         </div>
 
+        <div class="card card-chart">
+            <h3>Candidates by Post (Supply)</h3>
+            <div class="chart-container">
+                <canvas id="candidateSupplyChart"></canvas>
+            </div>
+        </div>
+        <div class="card card-chart">
+            <h3>Candidates by Disability (Supply)</h3>
+            <div class="chart-container">
+                <canvas id="candidateCategoryChart"></canvas>
+            </div>
+        </div>
+
         <div class="card card-full-width card-interactive">
             <h2>Check Your Management</h2>
-            <select id="management-filter">
-                <option value="">Select a Management...</option>
-            </select>
+            <input type="text" id="management-search" list="management-list" placeholder="Type to search for a management...">
+            <datalist id="management-list"></datalist>
+
             <div id="management-details-container" style="display: none;">
                 <h3 id="management-name"></h3>
                 <div class="card-kpi-row">
@@ -90,17 +123,16 @@
                     </div>
                 </div>
                 <div class="table-container">
-                    <table id="management-table">
-                        </table>
+                    <table id="management-table"></table>
                 </div>
             </div>
         </div>
 
         <div class="card card-full-width card-interactive">
             <h2>Check Available Candidates</h2>
-            <select id="candidate-filter">
-                <option value="">Select an Employment Office...</option>
-            </select>
+            <input type="text" id="candidate-search" list="candidate-list" placeholder="Type to search for an employment office...">
+            <datalist id="candidate-list"></datalist>
+
             <div id="candidate-details-container" style="display: none;">
                 <h3 id="office-name"></h3>
                 <div class="chart-container-large">
