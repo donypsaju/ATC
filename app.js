@@ -1,54 +1,95 @@
-// Wait for the DOM to load before running the script
+// --- Global Data Store ---
+let allRosterData = [];
+let allCandidateData = [];
+let chartInstances = {}; // To manage and destroy old charts
+
+// --- Chart Colors ---
+const CHART_COLORS = {
+    red: 'rgb(255, 99, 132)',
+    orange: 'rgb(255, 159, 64)',
+    green: 'rgb(75, 192, 192)',
+    blue: 'rgb(54, 162, 235)',
+    purple: 'rgb(153, 102, 255)',
+    grey: 'rgb(201, 203, 207)',
+    darkgrey: 'rgb(101, 103, 107)'
+};
+
+// --- Initialization ---
 document.addEventListener("DOMContentLoaded", () => {
-    loadData();
+    // 1. Fetch timestamps first
+    fetchTimestamps();
+    
+    // 2. Load all data
+    loadAllData();
+    
+    // 3. Setup event listeners for filters
+    document.getElementById('management-filter').addEventListener('change', handleManagementFilter);
+    document.getElementById('candidate-filter').addEventListener('change', handleCandidateFilter);
 });
 
-// Main function to fetch and process data
-async function loadData() {
+/**
+ * Fetches timestamps from GitHub API
+ * Relies on config.js for repo URL
+ */
+async function fetchTimestamps() {
     try {
-        // Fetch both data sources at the same time
-        const [rosterResponse, candidatesResponse] = await Promise.all([
-            fetch('roster_data.json'),
-            fetch('candidates.json')
-        ]);
+        const rosterCommitResponse = await fetch(`${GITHUB_REPO_URL}/commits?path=roster_data.json&per_page=1`);
+        const rosterCommits = await rosterCommitResponse.json();
+        if (rosterCommits && rosterCommits.length > 0) {
+            const lastChange = new Date(rosterCommits[0].commit.author.date);
+            document.getElementById('roster-update-time').textContent = lastChange.toLocaleString();
+        }
 
-        const rosterData = await rosterResponse.json();
-        const candidateData = await candidatesResponse.json();
-
-        // 1. Process Roster Data (The "Demand")
-        const processedRoster = processRosterData(rosterData);
-        
-        // 2. Process Candidate Data (The "Supply")
-        const processedCandidates = processCandidateData(candidateData);
-
-        // 3. Render all visualizations
-        renderSupplyDemandChart(processedRoster.totalAppointments, processedCandidates.totalCandidates);
-        renderPostStatusChart(processedRoster.categories);
-        
-        // 4. Update summary text
-        document.getElementById('verifiedCount').textContent = processedRoster.totalVerified;
-        document.getElementById('totalSchoolCount').textContent = processedRoster.totalSchools;
-        document.getElementById('notAppointedTotal').textContent = processedRoster.totalNotAppointed;
-
-    } catch (error) {
-        console.error("Failed to load or process data:", error);
-        alert("Error: Could not load data files. Make sure 'roster_data.json' and 'candidates.json' exist.");
+        const candidateCommitResponse = await fetch(`${GITHUB_REPO_URL}/commits?path=candidates.json&per_page=1`);
+        const candidateCommits = await candidateCommitResponse.json();
+        if (candidateCommits && candidateCommits.length > 0) {
+            const lastChange = new Date(candidateCommits[0].commit.author.date);
+            document.getElementById('candidate-update-time').textContent = lastChange.toLocaleString();
+        }
+    } catch (e) {
+        console.error("Error fetching timestamps:", e);
+        document.getElementById('roster-update-time').textContent = "Error";
+        document.getElementById('candidate-update-time').textContent = "Error";
     }
 }
 
 /**
- * Processes roster_data.json
- * Calculates totals for charts and summary
+ * Loads both JSON data files and triggers rendering
  */
-function processRosterData(data) {
+async function loadAllData() {
+    try {
+        const [rosterResponse, candidatesResponse] = await Promise.all([
+            fetch('roster_data.json'),
+            fetch('candidates.json')
+        ]);
+        allRosterData = await rosterResponse.json();
+        allCandidateData = await candidatesResponse.json();
+
+        // Once data is loaded, render the dashboard
+        renderGlobalDashboard();
+        populateFilters();
+
+    } catch (error) {
+        console.error("Failed to load or process data:", error);
+        alert("Error: Could not load data files.");
+    }
+}
+
+// --- Global Dashboard Rendering ---
+
+/**
+ * Calculates and renders all global (non-filtered) charts and KPIs
+ */
+function renderGlobalDashboard() {
+    // --- 1. Process Roster Data ---
     let totalVerified = 0;
     let totalSchools = 0;
-    let totalAppointments = 0;
+    let totalLimbo = 0;
     let totalNotApproved = 0;
     let totalNotAppointed = 0;
+    let totalManagerAppointed = 0;
     
-    // An object to hold sums for each category
-    const categories = {
+    const categoryTotals = {
         'Category - 1 (Primary)': { not_approved: 0, not_appointed: 0, manager_appo: 0 },
         'Category - 2 (High School)': { not_approved: 0, not_appointed: 0, manager_appo: 0 },
         'Category - 3 (Non Teaching)': { not_approved: 0, not_appointed: 0, manager_appo: 0 },
@@ -58,139 +99,275 @@ function processRosterData(data) {
         'Category - 7 (VHST Jr.)': { not_approved: 0, not_appointed: 0, manager_appo: 0 },
     };
 
-    data.forEach(entry => {
-        // Sum verification status
+    allRosterData.forEach(entry => {
         totalVerified += entry.verf_status[0] || 0;
         totalSchools += entry.verf_status[1] || 0;
 
-        // Loop through the 7 categories for each entry
         for (let i = 1; i <= 7; i++) {
             const catKey = `category_${String(i).padStart(2, '0')}`;
-            const catName = getCategoryName(i); // Helper to get 'Category - 1 (Primary)'
+            const catName = getCategoryName(i);
             
             if (entry[catKey] && entry[catKey].length > 0) {
-                const catData = entry[catKey][0];
+                const data = entry[catKey][0];
+                const notApproved = data.not_approved || 0;
+                const notAppointed = data.not_appointed || 0;
+                const managerAppo = data.manager_appo || 0;
+
+                categoryTotals[catName].not_approved += notApproved;
+                categoryTotals[catName].not_appointed += notAppointed;
+                categoryTotals[catName].manager_appo += managerAppo;
                 
-                // Sum for Issue 03 & 04
-                categories[catName].not_approved += catData.not_approved || 0;
-                categories[catName].not_appointed += catData.not_appointed || 0;
-                categories[catName].manager_appo += catData.manager_appo || 0;
-                
-                // Sum for Issue 01 (Demand)
-                // "Demand" = total posts to be filled = manager_appo + not_approved + not_appointed
-                const totalDemandForCat = (catData.manager_appo || 0) + (catData.not_approved || 0) + (catData.not_appointed || 0);
-                totalAppointments += totalDemandForCat;
+                totalLimbo += notApproved + notAppointed;
+                totalNotApproved += notApproved;
+                totalNotAppointed += notAppointed;
+                totalManagerAppointed += managerAppo;
             }
         }
     });
 
-    // Sum totals for the summary text
-    totalNotAppointed = Object.values(categories).reduce((sum, cat) => sum + cat.not_appointed, 0);
-
-    return { totalVerified, totalSchools, totalAppointments, totalNotAppointed, categories };
-}
-
-/**
- * Processes candidates.json
- * Calculates total available "Supply"
- */
-function processCandidateData(data) {
-    let totalCandidates = 0;
-    
-    data.forEach(entry => {
-        // Sum the "Total" from all categories for each office
-        totalCandidates += entry.NonTeaching.Total || 0;
-        totalCandidates += entry.LPST.Total || 0;
-        totalCandidates += entry.UPST.Total || 0;
-        totalCandidates += entry.HST.Total || 0;
-        totalCandidates += entry.HSST.Total || 0;
+    // --- 2. Process Candidate Data ---
+    let totalSupply = 0;
+    allCandidateData.forEach(entry => {
+        totalSupply += entry.NonTeaching.Total || 0;
+        totalSupply += entry.LPST.Total || 0;
+        totalSupply += entry.UPST.Total || 0;
+        totalSupply += entry.HST.Total || 0;
+        totalSupply += entry.HSST.Total || 0;
     });
 
-    return { totalCandidates };
+    // --- 3. Render KPI Cards ---
+    const totalDemand = totalManagerAppointed + totalNotApproved + totalNotAppointed;
+    const verificationRate = totalSchools > 0 ? ((totalVerified / totalSchools) * 100).toFixed(1) : 0;
+
+    document.getElementById('kpi-total-limbo').textContent = totalLimbo.toLocaleString();
+    document.getElementById('kpi-total-supply').textContent = totalSupply.toLocaleString();
+    document.getElementById('kpi-verification-rate').textContent = `${verificationRate}%`;
+    document.getElementById('kpi-verification-count').textContent = `(${totalVerified} / ${totalSchools})`;
+    document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
+
+    // --- 4. Render Charts ---
+    renderSupplyDemandChart(totalDemand, totalSupply);
+    renderVerificationChart(totalVerified, totalSchools);
+    renderPostStatusChart(categoryTotals);
 }
 
 /**
- * Renders Chart 1: Supply vs Demand
+ * Renders Chart: Supply vs. Demand
  */
 function renderSupplyDemandChart(demand, supply) {
     const ctx = document.getElementById('supplyDemandChart').getContext('2d');
-    new Chart(ctx, {
+    if (chartInstances.supplyDemand) chartInstances.supplyDemand.destroy();
+    chartInstances.supplyDemand = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: ['Total Posts (Demand)', 'Available Candidates (Supply)'],
             datasets: [{
                 label: 'Count',
                 data: [demand, supply],
-                backgroundColor: [
-                    'rgba(185, 0, 0, 0.6)', // Red for Demand
-                    'rgba(0, 100, 150, 0.6)' // Blue for Supply
-                ],
-                borderColor: [
-                    'rgba(185, 0, 0, 1)',
-                    'rgba(0, 100, 150, 1)'
-                ],
-                borderWidth: 1
+                backgroundColor: [CHART_COLORS.red, CHART_COLORS.blue],
             }]
         },
-        options: {
-            responsive: true,
-            indexAxis: 'y', // Horizontal bar chart
-            plugins: {
-                legend: { display: false },
-                title: { display: true, text: 'Supply of Candidates vs. Demand for Posts' }
-            }
-        }
+        options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y', plugins: { legend: { display: false } } }
     });
 }
 
 /**
- * Renders Chart 2: Post Status (Consequences)
+ * Renders Chart: Verification Status (Donut)
+ */
+function renderVerificationChart(verified, total) {
+    const ctx = document.getElementById('verificationChart').getContext('2d');
+    if (chartInstances.verification) chartInstances.verification.destroy();
+    chartInstances.verification = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Verified', 'Pending'],
+            datasets: [{
+                data: [verified, total - verified],
+                backgroundColor: [CHART_COLORS.green, CHART_COLORS.darkgrey],
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+    });
+}
+
+/**
+ * Renders Chart: Post Status Breakdown (Stacked Bar)
  */
 function renderPostStatusChart(categoryData) {
     const ctx = document.getElementById('postStatusChart').getContext('2d');
+    if (chartInstances.postStatus) chartInstances.postStatus.destroy();
     
     const labels = Object.keys(categoryData);
-    const notApprovedData = labels.map(l => categoryData[l].not_approved);
-    const notAppointedData = labels.map(l => categoryData[l].not_appointed);
-    const managerAppoData = labels.map(l => categoryData[l].manager_appo);
-
-    new Chart(ctx, {
+    chartInstances.postStatus = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: labels,
             datasets: [
                 {
                     label: 'Not Appointed',
-                    data: notAppointedData,
-                    backgroundColor: 'rgba(255, 159, 64, 0.7)', // Orange
+                    data: labels.map(l => categoryData[l].not_appointed),
+                    backgroundColor: CHART_COLORS.orange,
                 },
                 {
                     label: 'Not Approved',
-                    data: notApprovedData,
-                    backgroundColor: 'rgba(255, 99, 132, 0.7)', // Red
+                    data: labels.map(l => categoryData[l].not_approved),
+                    backgroundColor: CHART_COLORS.red,
                 },
                 {
-                    label: 'Manager Appointed (Pending)',
-                    data: managerAppoData,
-                    backgroundColor: 'rgba(75, 192, 192, 0.7)', // Green
+                    label: 'Manager Appointed',
+                    data: labels.map(l => categoryData[l].manager_appo),
+                    backgroundColor: CHART_COLORS.green,
                 }
             ]
         },
         options: {
-            responsive: true,
-            scales: {
-                x: { stacked: true }, // Stack bars horizontally
-                y: { stacked: true }  // Stack bars vertically
-            },
-            plugins: {
-                title: { display: true, text: 'Status of Posts by Category (Consequences)' },
-                tooltip: { mode: 'index' }
-            }
+            responsive: true, maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true } },
+            plugins: { tooltip: { mode: 'index' } }
         }
     });
 }
 
-// Helper to get category name from number
+// --- Interactive Filter Logic ---
+
+/**
+ * Fills the <select> dropdowns with data
+ */
+function populateFilters() {
+    const mgmtFilter = document.getElementById('management-filter');
+    allRosterData
+        .sort((a, b) => a.name_of_management.localeCompare(b.name_of_management))
+        .forEach(entry => {
+            const option = new Option(entry.name_of_management, entry.name_of_management);
+            mgmtFilter.add(option);
+        });
+
+    const candFilter = document.getElementById('candidate-filter');
+    allCandidateData
+        .sort((a, b) => a.Office_Name.localeCompare(b.Office_Name))
+        .forEach(entry => {
+            const option = new Option(entry.Office_Name, entry.Office_Name);
+            candFilter.add(option);
+        });
+}
+
+/**
+ * Handles selection from the Management dropdown
+ */
+function handleManagementFilter(e) {
+    const selectedName = e.target.value;
+    const container = document.getElementById('management-details-container');
+    
+    if (!selectedName) {
+        container.style.display = 'none';
+        return;
+    }
+
+    const entry = allRosterData.find(m => m.name_of_management === selectedName);
+    if (!entry) return;
+
+    // --- Calculate KPIs for this management ---
+    let totalLimbo = 0;
+    let tableHtml = `
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Manager Appointed</th>
+                <th>Not Approved</th>
+                <th>Not Appointed</th>
+            </tr>
+        </thead>
+        <tbody>
+    `;
+
+    for (let i = 1; i <= 7; i++) {
+        const catKey = `category_${String(i).padStart(2, '0')}`;
+        const catName = getCategoryName(i);
+        let row = { not_approved: 0, not_appointed: 0, manager_appo: 0 };
+        
+        if (entry[catKey] && entry[catKey].length > 0) {
+            row = entry[catKey][0];
+            totalLimbo += (row.not_approved || 0) + (row.not_appointed || 0);
+        }
+        
+        tableHtml += `
+            <tr>
+                <td>${catName}</td>
+                <td>${row.manager_appo || 0}</td>
+                <td>${row.not_approved || 0}</td>
+                <td>${row.not_appointed || 0}</td>
+            </tr>
+        `;
+    }
+    tableHtml += '</tbody>';
+
+    // --- Populate fields ---
+    document.getElementById('management-name').textContent = entry.name_of_management;
+    document.getElementById('mgmt-kpi-status').textContent = `${entry.verf_status[0]} / ${entry.verf_status[1]}`;
+    document.getElementById('mgmt-kpi-limbo').textContent = totalLimbo;
+    document.getElementById('management-table').innerHTML = tableHtml;
+    container.style.display = 'block';
+}
+
+/**
+ * Handles selection from the Candidate Office dropdown
+ */
+function handleCandidateFilter(e) {
+    const selectedName = e.target.value;
+    const container = document.getElementById('candidate-details-container');
+
+    if (!selectedName) {
+        container.style.display = 'none';
+        return;
+    }
+
+    const entry = allCandidateData.find(m => m.Office_Name === selectedName);
+    if (!entry) return;
+
+    // --- Render the chart for this office ---
+    document.getElementById('office-name').textContent = `Office: ${entry.Office_Name}`;
+    container.style.display = 'block';
+    
+    const ctx = document.getElementById('candidateOfficeChart').getContext('2d');
+    if (chartInstances.candidate) chartInstances.candidate.destroy();
+    
+    const labels = ['NonTeaching', 'LPST', 'UPST', 'HST', 'HSST'];
+    chartInstances.candidate = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Blind',
+                    data: labels.map(l => entry[l].Blind),
+                    backgroundColor: CHART_COLORS.blue,
+                },
+                {
+                    label: 'Deaf',
+                    data: labels.map(l => entry[l].Deaf),
+                    backgroundColor: CHART_COLORS.orange,
+                },
+                {
+                    label: 'Handicapped',
+                    data: labels.map(l => entry[l].Handi),
+                    backgroundColor: CHART_COLORS.green,
+                },
+                {
+                    label: 'Others',
+                    data: labels.map(l => entry[l].Others),
+                    backgroundColor: CHART_COLORS.grey,
+                },
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            scales: { x: { stacked: true }, y: { stacked: true } },
+            plugins: { tooltip: { mode: 'index' } }
+        }
+    });
+}
+
+// --- Helper Functions ---
 function getCategoryName(index) {
     const names = [
         'Category - 1 (Primary)', 'Category - 2 (High School)', 'Category - 3 (Non Teaching)',
