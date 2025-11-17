@@ -175,7 +175,7 @@ function updateDashboard() {
     renderCandidateDisabilityChart(candidateStats.supplyByDisability);
 
     // --- Render Key Findings ---
-    // renderKeyFindings(rosterStats, candidateStats); // <-- REMOVE OR COMMENT OUT THIS LINE
+    renderKeyFindings(); // <-- ADD THIS LINE BACK
 }
 
 /**
@@ -276,31 +276,51 @@ function processCandidateData(filter) {
 }
 
 /**
- * Populates the "Key Findings" card
+ * Populates the "Key Findings" card.
+ * NOTE: This function calculates its own stats, ignoring the filters,
+ * to always provide a global summary based on the user's screenshots.
  */
-/* // REMOVE OR COMMENT OUT THIS ENTIRE FUNCTION
-function renderKeyFindings(rosterStats, candidateStats) {
-    const owed = rosterStats.totalPostsOwed;
-    const supply = candidateStats.totalSupply;
-    const filled = rosterStats.totalManagerAppointed;
-    const reported = rosterStats.totalReported;
-    
-    // The "Gap" = Posts Owed - Posts Filled - Posts Reported
-    const unaccounted = Math.round(owed - filled - reported);
-    
-    // Finding 1: The Supply/Demand Mismatch
-    document.getElementById('finding-1').innerHTML = 
-        `There is a demand for <strong>${owed.toLocaleString()}</strong> legally-owed PWD posts, but only <strong>${supply.toLocaleString()}</strong> qualified candidates are available in the exchanges.`;
-        
-    // Finding 2: The Action Gap
-    document.getElementById('finding-2').innerHTML = 
-        `Of the ${owed.toLocaleString()} posts owed, <strong>${filled.toLocaleString()}</strong> have been filled and <strong>${reported.toLocaleString()}</strong> reported. <strong>${unaccounted.toLocaleString()} posts are unaccounted for.</strong>`;
+function renderKeyFindings() {
+    try {
+        // 1. Calculate stats for ALL posts
+        const allRosterStats = processRosterData({ type: 'All' });
 
-    // Finding 3: The Consequence
-    document.getElementById('finding-3').innerHTML = 
-        `A total of <strong>${rosterStats.totalLimbo.toLocaleString()}</strong> appointments (for all candidates) are currently in limbo, stuck as "Not Approved" or "Not Appointed".`;
+        // 2. Calculate stats for TEACHING posts
+        const teachingRosterStats = processRosterData({ type: 'Teaching' });
+        const teachingCandidateStats = processCandidateData({ type: 'Teaching' });
+
+        // 3. Calculate stats for NON-TEACHING posts
+        const nonTeachingRosterStats = processRosterData({ type: 'NonTeaching' });
+        const nonTeachingCandidateStats = processCandidateData({ type: 'NonTeaching' });
+
+        // --- Finding 1: The Mismatch ---
+        const teachingOwed = teachingRosterStats.totalPostsOwed;
+        const teachingSupply = teachingCandidateStats.totalSupply;
+        const nonTeachingOwed = nonTeachingRosterStats.totalPostsOwed;
+        const nonTeachingSupply = nonTeachingCandidateStats.totalSupply;
+
+        document.getElementById('finding-1').innerHTML = 
+            `<strong>Qualification Mismatch:</strong> There is a critical shortage of <strong>Teaching</strong> candidates (<strong>${teachingSupply.toLocaleString()}</strong> available for <strong>${teachingOwed.toLocaleString()}</strong> owed posts), but a massive surplus of <strong>Non-Teaching</strong> candidates (<strong>${nonTeachingSupply.toLocaleString()}</strong> available for <strong>${nonTeachingOwed.toLocaleString()}</strong> posts).`;
+            
+        // --- Finding 2: The Action Gap ---
+        const allOwed = allRosterStats.totalPostsOwed;
+        const allFilled = allRosterStats.totalManagerAppointed;
+        const allReported = allRosterStats.totalReported;
+        const unaccounted = allOwed - allFilled - allReported;
+
+        document.getElementById('finding-2').innerHTML = 
+            `<strong>Action Gap:</strong> Of the <strong>${allOwed.toLocaleString()}</strong> total posts owed, <strong>${allFilled.toLocaleString()}</strong> have been filled and <strong>${allReported.toLocaleString()}</strong> have been reported. This leaves <strong>${Math.round(unaccounted).toLocaleString()}</strong> posts unaccounted for by managements.`;
+
+        // --- Finding 3: The Consequence ---
+        const allLimbo = allRosterStats.totalLimbo;
+        document.getElementById('finding-3').innerHTML = 
+            `<strong>Administrative Logjam:</strong> <strong>${allLimbo.toLocaleString()}</strong> total appointments (for all candidates, PWD and non-PWD) are stuck in "Limbo" (Not Approved or Not Appointed) while the roster is pending.`;
+
+    } catch (e) {
+        console.error("Error rendering key findings:", e);
+        document.getElementById('finding-1').innerHTML = "Error loading findings.";
+    }
 }
-*/
 
 
 // --- Chart Rendering Functions (Request 6) ---
