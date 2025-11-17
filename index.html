@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PWD Reservation Dashboard: Kerala Aided Schools</title>
     
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
+    <!-- Custom CSS for Chart Heights (Minimal) -->
     <style>
         .chart-container { position: relative; height: 300px; width: 100%; }
         .chart-container-large { position: relative; height: 400px; width: 100%; }
@@ -16,6 +18,7 @@
 </head>
 <body>
 
+    <!-- Header with Global Search -->
     <nav class="navbar bg-body-tertiary px-3">
         <div class="container-fluid">
             <a class="navbar-brand" href="#">PWD Reservation Dashboard</a>
@@ -27,8 +30,10 @@
     </nav>
 
     <main class="container-fluid my-3">
+        <!-- Row 1: Metadata & Filters -->
         <div class="row g-3">
             
+            <!-- Metadata Card -->
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
@@ -43,13 +48,11 @@
                                 <div class="fs-5" id="candidate-update-time">Loading...</div>
                             </div>
                         </div>
-                        <p class="card-text small text-body-secondary mt-2 mb-0">
-                            Data is checked for updates every 7 days. This timestamp shows the last time the data *actually changed*.
-                        </p>
                     </div>
                 </div>
             </div>
 
+            <!-- Filter Button Groups -->
             <div class="col-12">
                 <div class="card">
                     <div class="card-body d-flex flex-wrap gap-3">
@@ -75,52 +78,70 @@
                     </div>
                 </div>
             </div>
+
+            <!-- NEW: Key Findings Card -->
+            <div class="col-12">
+                <div class="card text-bg-warning">
+                    <div class="card-body">
+                        <h5 class="card-title">Key Findings</h5>
+                        <ul class="fs-5" id="key-findings-list">
+                            <li id="finding-1">Calculating...</li>
+                            <li id="finding-2">Calculating...</li>
+                            <li id="finding-3">Calculating...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
+        <!-- Row 2: Global KPI Cards -->
         <div class="row g-3 my-2">
             <div class="col-md-6 col-lg-3">
                 <div class="card text-bg-danger h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary-dark small">Total Posts in Limbo</div>
-                        <div class="fs-1 fw-bold" id="kpi-total-limbo">--</div>
-                        <div class="small">(Not Approved + Not Appointed)</div>
+                        <div class="text-body-secondary-dark small">Total Posts Owed (by Law)</div>
+                        <div class="fs-1 fw-bold" id="kpi-total-owed">--</div>
+                        <div class="small">(3% pre-2017 + 4% post-2017)</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
                 <div class="card text-bg-primary h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary-dark small">Available Candidates</div>
+                        <div class="text-body-secondary-dark small">Available Candidates (Supply)</div>
                         <div class="fs-1 fw-bold" id="kpi-total-supply">--</div>
-                        <div classs="small">(From RTI Data)</div>
+                        <!-- METRIC 1: Added RTI entries count -->
+                        <div class="small" id="kpi-total-entries">(from -- RTI entries)</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
                 <div class="card h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary small">Schools Verified</div>
-                        <div class="fs-1 fw-bold" id="kpi-verification-rate">--%</div>
-                        <div class="small" id="kpi-verification-count">(--/--)</div>
+                        <div class="text-body-secondary small">Posts Filled by Mgmt</div>
+                        <div class="fs-1 fw-bold" id="kpi-total-filled">--</div>
+                        <div class="small" id="kpi-total-filled-pct">(--% of posts owed)</div>
                     </div>
                 </div>
             </div>
             <div class="col-md-6 col-lg-3">
                 <div class="card h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary small">Managements Tracked</div>
-                        <div class="fs-1 fw-bold" id="kpi-total-managements">--</div>
-                        <div class="small">(Corporate + Individual)</div>
+                        <div class="text-body-secondary small">Posts in Limbo</div>
+                        <div class="fs-1 fw-bold" id="kpi-total-limbo">--</div>
+                        <div class="small">(Not Approved + Not Appointed)</div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- Row 3: Core Issue Charts -->
         <div class="row g-3 my-2">
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Issue 01: Supply vs. Demand</h5>
+                        <h5 class="card-title">Issue 01: Supply vs. Demand (Owed)</h5>
                         <div class="chart-container">
                             <canvas id="supplyDemandChart"></canvas>
                         </div>
@@ -130,7 +151,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Issue 03: Post Status (Demand)</h5>
+                        <h5 class="card-title">Action on Owed Posts</h5>
                         <div class="chart-container-donut">
                             <canvas id="postStatusChart"></canvas>
                         </div>
@@ -140,9 +161,9 @@
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Issue 02: Verification Status</h5>
+                        <h5 class="card-title">Candidates by Disability (Supply)</h5>
                         <div class="chart-container-donut">
-                            <canvas id="verificationChart"></canvas>
+                            <canvas id="candidateCategoryChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -161,28 +182,34 @@
             <div class="col-lg-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Candidates by Disability (Supply)</h5>
+                        <h5 class="card-title">Verification Status</h5>
                         <div class="chart-container">
-                            <canvas id="candidateCategoryChart"></canvas>
+                            <canvas id="verificationChart"></canvas>
                         </div>
+                        <div class="text-center small text-body-secondary" id="kpi-verification-count">(-- / -- Schools Verified)</div>
                     </div>
                 </div>
             </div>
         </div>
         
+        <!-- Row 4: Search Results (Hidden by default) -->
         <div class="row g-3 my-2" id="search-results-row" style="display: none;">
             <div class="col-lg-6" id="management-details-container" style="display: none;">
                 <div class="card h-100">
                     <div class="card-body">
                         <h5 class="card-title" id="management-name"></h5>
                         <div class="d-flex flex-wrap gap-3">
-                            <div class="flex-grow-1">
+                            <div class="kpi-item">
                                 <div class="text-body-secondary small">Verification Status</div>
                                 <div class="fs-4" id="mgmt-kpi-status">--</div>
                             </div>
-                            <div class="flex-grow-1">
-                                <div class="text-body-secondary small">Total Posts in Limbo</div>
-                                <div class="fs-4" id="mgmt-kpi-limbo">--</div>
+                            <div class="kpi-item text-danger">
+                                <div class="text-body-secondary small">Posts Owed (by Law)</div>
+                                <div class="fs-4" id="mgmt-kpi-owed">--</div>
+                            </div>
+                            <div class="kpi-item text-success">
+                                <div class="text-body-secondary small">Posts Filled by Mgmt</div>
+                                <div class="fs-4" id="mgmt-kpi-filled">--</div>
                             </div>
                         </div>
                         <div class="table-responsive mt-3">
@@ -206,10 +233,13 @@
 
     </main>
 
+    <!-- Bootstrap JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
+    <!-- Your JS Files -->
     <script src="config.js"></script>
     <script src="app.js"></script>
 </body>
