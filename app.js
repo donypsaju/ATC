@@ -175,7 +175,7 @@ function updateDashboard() {
     renderCandidateDisabilityChart(candidateStats.supplyByDisability);
 
     // --- Render Key Findings ---
-    renderKeyFindings(rosterStats, candidateStats);
+    // renderKeyFindings(rosterStats, candidateStats); // <-- REMOVE OR COMMENT OUT THIS LINE
 }
 
 /**
@@ -278,6 +278,7 @@ function processCandidateData(filter) {
 /**
  * Populates the "Key Findings" card
  */
+/* // REMOVE OR COMMENT OUT THIS ENTIRE FUNCTION
 function renderKeyFindings(rosterStats, candidateStats) {
     const owed = rosterStats.totalPostsOwed;
     const supply = candidateStats.totalSupply;
@@ -299,6 +300,7 @@ function renderKeyFindings(rosterStats, candidateStats) {
     document.getElementById('finding-3').innerHTML = 
         `A total of <strong>${rosterStats.totalLimbo.toLocaleString()}</strong> appointments (for all candidates) are currently in limbo, stuck as "Not Approved" or "Not Appointed".`;
 }
+*/
 
 
 // --- Chart Rendering Functions (Request 6) ---
