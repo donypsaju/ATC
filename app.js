@@ -14,29 +14,31 @@ const CHART_COLORS = {
     grey: 'rgb(101, 103, 107)',
 };
 
-// --- Category Mappings (FIXED) ---
-// Category 1 = Primary (LPST + UPST)
-// Category 2 = High School (HST)
-// Category 3 = Non Teaching
-// Category 4 = HSST Sr.
-// Category 5 = HSST Jr.
-// Category 6 = VHST Sr.
-// Category 7 = VHST Jr.
+// --- Category Mappings (FIXED 100%) ---
+// Roster Data Structure:
+// Cat 1 = Primary (Includes BOTH LPST and UPST) - Cannot be separated
+// Cat 2 = High School (HST)
+// Cat 3 = Non Teaching
+// Cat 4 = HSST Sr.
+// Cat 5 = HSST Jr.
+// Cat 6 = VHST Sr.
+// Cat 7 = VHST Jr.
 
 const ROSTER_CATEGORY_MAP = {
-    // Both LPST and UPST map to Cat 1 because Roster combines them
+    // CRITICAL CHANGE: LPST and UPST both map to 'category_01' 
+    // because the roster does not separate them.
     'LPST': ['category_01'],
     'UPST': ['category_01'],
-    'Primary': ['category_01'],
+    'Primary': ['category_01'], 
     
     'HST': ['category_02'], // High School
     
     'NonTeaching': ['category_03'],
     
-    'HSST': ['category_04', 'category_05'], // Sr + Jr
+    'HSST': ['category_04', 'category_05', 'category_06', 'category_07'], // Grouping all Higher Secondary
 };
 
-// Define "Teaching" manually to avoid double-counting Cat 1
+// Manual definition for "Teaching" to ensure Category 01 is counted ONLY ONCE
 ROSTER_CATEGORY_MAP.Teaching = [
     'category_01', // Primary (LP+UP)
     'category_02', // High School
@@ -51,25 +53,32 @@ ROSTER_CATEGORY_MAP.All = [
     'category_03' // NonTeaching
 ];
 
+// Candidate Data Structure (Supply):
+// These ARE separated in the JSON/Excel
 const CANDIDATE_CATEGORY_MAP = {
     'LPST': ['LPST'],
     'UPST': ['UPST'],
     'NonTeaching': ['NonTeaching'],
     'HST': ['HST'],
     'HSST': ['HSST'],
-    'Primary': ['LPST', 'UPST'],
+    'Primary': ['LPST', 'UPST'], // Sum of both for Primary view
 };
+
 CANDIDATE_CATEGORY_MAP.Teaching = [
-    ...CANDIDATE_CATEGORY_MAP.LPST, ...CANDIDATE_CATEGORY_MAP.UPST,
-    ...CANDIDATE_CATEGORY_MAP.HST, ...CANDIDATE_CATEGORY_MAP.HSST
+    ...CANDIDATE_CATEGORY_MAP.LPST, 
+    ...CANDIDATE_CATEGORY_MAP.UPST,
+    ...CANDIDATE_CATEGORY_MAP.HST, 
+    ...CANDIDATE_CATEGORY_MAP.HSST
 ];
+
 CANDIDATE_CATEGORY_MAP.All = [
-    ...CANDIDATE_CATEGORY_MAP.Teaching, ...CANDIDATE_CATEGORY_MAP.NonTeaching
+    ...CANDIDATE_CATEGORY_MAP.Teaching, 
+    ...CANDIDATE_CATEGORY_MAP.NonTeaching
 ];
 
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", () => {
-    // 5a. Initialize Bootstrap Popovers
+    // Initialize Bootstrap Popovers
     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
     [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
 
@@ -224,7 +233,7 @@ function processRosterData(filter) {
 
     const keysToProcess = ROSTER_CATEGORY_MAP[filter.type] || [];
     
-    // Deduplicate keys (important because LPST and UPST both map to cat_01)
+    // Deduplicate keys (CRITICAL because LPST and UPST both map to cat_01)
     const uniqueKeys = [...new Set(keysToProcess)];
 
     allRosterData.forEach(entry => {
@@ -254,7 +263,7 @@ function processRosterData(filter) {
         totalVerified, 
         totalSchools, 
         totalLimbo, 
-        totalPostsOwed: Math.round(totalPostsOwed),
+        totalPostsOwed: Math.round(totalPostsOwed), // Use whole numbers for clarity
         totalManagerAppointed, 
         totalReported,
         totalNotApproved
@@ -473,7 +482,7 @@ function handleGlobalSearch(e) {
 
 /**
  * Populates the Management search result card
- * UPDATED with correct Category Names
+ * UPDATED with correct Category Names (Cat 1 is merged Primary)
  */
 function renderManagementCard(entry) {
     let totalOwed = 0;
@@ -566,11 +575,10 @@ function renderCandidateCard(entry) {
 
 /**
  * Helper to get correct category names based on the new mapping
- * UPDATED to match the image exactly
  */
 function getCategoryName(index) {
     const simpleNames = [
-        'Primary (Cat 1)',     // 1
+        'Primary (Cat 1)',     // 1 - COMBINED
         'High School (Cat 2)', // 2
         'Non-Teaching',        // 3
         'HSST Sr.',            // 4
