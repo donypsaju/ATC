@@ -14,21 +14,41 @@ const CHART_COLORS = {
     grey: 'rgb(101, 103, 107)',
 };
 
-// --- Category Mappings ---
+// --- Category Mappings (FIXED) ---
+// Category 1 = Primary (LPST + UPST)
+// Category 2 = High School (HST)
+// Category 3 = Non Teaching
+// Category 4 = HSST Sr.
+// Category 5 = HSST Jr.
+// Category 6 = VHST Sr.
+// Category 7 = VHST Jr.
+
 const ROSTER_CATEGORY_MAP = {
+    // Both LPST and UPST map to Cat 1 because Roster combines them
     'LPST': ['category_01'],
-    'UPST': ['category_02'],
+    'UPST': ['category_01'],
+    'Primary': ['category_01'],
+    
+    'HST': ['category_02'], // High School
+    
     'NonTeaching': ['category_03'],
-    'HST': ['category_04'],
-    'HSST': ['category_05', 'category_06', 'category_07'],
-    'Primary': ['category_01', 'category_02'],
+    
+    'HSST': ['category_04', 'category_05'], // Sr + Jr
 };
+
+// Define "Teaching" manually to avoid double-counting Cat 1
 ROSTER_CATEGORY_MAP.Teaching = [
-    ...ROSTER_CATEGORY_MAP.LPST, ...ROSTER_CATEGORY_MAP.UPST,
-    ...ROSTER_CATEGORY_MAP.HST, ...ROSTER_CATEGORY_MAP.HSST
+    'category_01', // Primary (LP+UP)
+    'category_02', // High School
+    'category_04', // HSST Sr
+    'category_05', // HSST Jr
+    'category_06', // VHST Sr
+    'category_07'  // VHST Jr
 ];
+
 ROSTER_CATEGORY_MAP.All = [
-    ...ROSTER_CATEGORY_MAP.Teaching, ...ROSTER_CATEGORY_MAP.NonTeaching
+    ...ROSTER_CATEGORY_MAP.Teaching,
+    'category_03' // NonTeaching
 ];
 
 const CANDIDATE_CATEGORY_MAP = {
@@ -204,12 +224,15 @@ function processRosterData(filter) {
 
     const keysToProcess = ROSTER_CATEGORY_MAP[filter.type] || [];
     
+    // Deduplicate keys (important because LPST and UPST both map to cat_01)
+    const uniqueKeys = [...new Set(keysToProcess)];
+
     allRosterData.forEach(entry => {
         // Verification status is always calculated
         totalVerified += entry.verf_status[0] || 0;
         totalSchools += entry.verf_status[1] || 0;
 
-        keysToProcess.forEach(catKey => {
+        uniqueKeys.forEach(catKey => {
             if (entry[catKey] && entry[catKey].length > 0) {
                 const data = entry[catKey][0];
                 
@@ -231,7 +254,7 @@ function processRosterData(filter) {
         totalVerified, 
         totalSchools, 
         totalLimbo, 
-        totalPostsOwed: Math.round(totalPostsOwed), // Use whole numbers for clarity
+        totalPostsOwed: Math.round(totalPostsOwed),
         totalManagerAppointed, 
         totalReported,
         totalNotApproved
@@ -450,7 +473,7 @@ function handleGlobalSearch(e) {
 
 /**
  * Populates the Management search result card
- * UPDATED to include "Not Approved" in table and KPI
+ * UPDATED with correct Category Names
  */
 function renderManagementCard(entry) {
     let totalOwed = 0;
@@ -541,7 +564,19 @@ function renderCandidateCard(entry) {
     });
 }
 
+/**
+ * Helper to get correct category names based on the new mapping
+ * UPDATED to match the image exactly
+ */
 function getCategoryName(index) {
-    const simpleNames = ['LPST', 'UPST', 'Non-Teaching', 'HST', 'HSST', 'VHST Sr', 'VHST Jr'];
+    const simpleNames = [
+        'Primary (Cat 1)',     // 1
+        'High School (Cat 2)', // 2
+        'Non-Teaching',        // 3
+        'HSST Sr.',            // 4
+        'HSST Jr.',            // 5
+        'VHST Sr.',            // 6
+        'VHST Jr.'             // 7
+    ];
     return simpleNames[index - 1] || `Cat ${index}`;
 }
