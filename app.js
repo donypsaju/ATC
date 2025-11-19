@@ -175,7 +175,7 @@ function updateDashboard() {
     renderCandidateDisabilityChart(candidateStats.supplyByDisability);
 
     // --- Render Key Findings ---
-    renderKeyFindings(); // <-- ADD THIS LINE BACK
+    renderKeyFindings(); 
 }
 
 /**
@@ -277,8 +277,6 @@ function processCandidateData(filter) {
 
 /**
  * Populates the "Key Findings" card.
- * NOTE: This function calculates its own stats, ignoring the filters,
- * to always provide a global summary based on the user's screenshots.
  */
 function renderKeyFindings() {
     try {
@@ -323,7 +321,7 @@ function renderKeyFindings() {
 }
 
 
-// --- Chart Rendering Functions (Request 6) ---
+// --- Chart Rendering Functions ---
 
 function destroyChart(name) {
     if (chartInstances[name]) chartInstances[name].destroy();
@@ -333,7 +331,6 @@ function destroyChart(name) {
 Chart.defaults.color = '#ccc';
 Chart.defaults.borderColor = '#555';
 
-// 6a: Supply vs. Demand
 function renderSupplyDemandChart(demand, supply) {
     const ctx = document.getElementById('supplyDemandChart').getContext('2d');
     destroyChart('supplyDemand');
@@ -347,7 +344,6 @@ function renderSupplyDemandChart(demand, supply) {
     });
 }
 
-// 6d: Verification Status (Donut)
 function renderVerificationChart(verified, total) {
     const ctx = document.getElementById('verificationChart').getContext('2d');
     destroyChart('verification');
@@ -361,7 +357,6 @@ function renderVerificationChart(verified, total) {
     });
 }
 
-// 6e: Action on Owed Posts (New "Useful" Chart)
 function renderActionOnOwedChart(statusTotals) {
     const ctx = document.getElementById('actionOnOwedChart').getContext('2d');
     destroyChart('actionOnOwed');
@@ -375,7 +370,6 @@ function renderActionOnOwedChart(statusTotals) {
     });
 }
 
-// 6c: Candidates by Post (Supply)
 function renderCandidateSupplyChart(supplyByPost) {
     const ctx = document.getElementById('candidatePostChart').getContext('2d');
     destroyChart('candidateSupply');
@@ -389,7 +383,6 @@ function renderCandidateSupplyChart(supplyByPost) {
     });
 }
 
-// 6b: Candidates by Disability (Supply)
 function renderCandidateDisabilityChart(supplyByDisability) {
     const ctx = document.getElementById('candidateDisabilityChart').getContext('2d');
     destroyChart('candidateDisability');
@@ -403,26 +396,50 @@ function renderCandidateDisabilityChart(supplyByDisability) {
     });
 }
 
-// --- Interactive Search Filter Logic (Request 1b) ---
+// --- Interactive Search Filter Logic ---
 
+/**
+ * Populates the search dropdown with SUFFIXES to differentiate entries.
+ */
 function populateSearchFilters() {
     const datalist = document.getElementById('global-search-list');
+    
     allRosterData.forEach(entry => {
-        datalist.appendChild(new Option(entry.name_of_management, entry.name_of_management));
+        const name = `${entry.name_of_management} (Management)`;
+        datalist.appendChild(new Option(name, name));
     });
+    
     allCandidateData.forEach(entry => {
-        datalist.appendChild(new Option(entry.Office_Name, entry.Office_Name));
+        const name = `${entry.Office_Name} (Employment Office)`;
+        datalist.appendChild(new Option(name, name));
     });
 }
 
+/**
+ * Handles input from the global search bar.
+ * Detects the suffix to show the correct card.
+ */
 function handleGlobalSearch(e) {
     const selectedName = e.target.value;
     const resultsRow = document.getElementById('search-results-row');
     const mgmtContainer = document.getElementById('management-details-container');
     const candContainer = document.getElementById('candidate-details-container');
 
-    const mgmtEntry = allRosterData.find(m => m.name_of_management === selectedName);
-    const candEntry = allCandidateData.find(m => m.Office_Name === selectedName);
+    let mgmtEntry = null;
+    let candEntry = null;
+
+    // Check for suffixes to strictly identify the type
+    if (selectedName.includes("(Management)")) {
+        const rawName = selectedName.replace(" (Management)", "");
+        mgmtEntry = allRosterData.find(m => m.name_of_management === rawName);
+    } else if (selectedName.includes("(Employment Office)")) {
+        const rawName = selectedName.replace(" (Employment Office)", "");
+        candEntry = allCandidateData.find(m => m.Office_Name === rawName);
+    } else {
+        // Fallback for exact matches without suffix (if user typed exactly what was there before)
+        mgmtEntry = allRosterData.find(m => m.name_of_management === selectedName);
+        candEntry = allCandidateData.find(m => m.Office_Name === selectedName);
+    }
 
     mgmtContainer.style.display = 'none';
     candContainer.style.display = 'none';
@@ -430,13 +447,13 @@ function handleGlobalSearch(e) {
     if (mgmtEntry) {
         renderManagementCard(mgmtEntry);
         mgmtContainer.style.display = 'block';
-        resultsRow.style.display = 'flex'; // Show the results row
+        resultsRow.style.display = 'flex';
     } else if (candEntry) {
         renderCandidateCard(candEntry);
         candContainer.style.display = 'block';
-        resultsRow.style.display = 'flex'; // Show the results row
+        resultsRow.style.display = 'flex';
     } else if (!selectedName) {
-        resultsRow.style.display = 'none'; // Hide if search is cleared
+        resultsRow.style.display = 'none';
     }
 }
 

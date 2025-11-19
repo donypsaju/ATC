@@ -40,14 +40,17 @@
     </nav>
 
     <!-- 2. SEARCH RESULTS (Hidden by default) -->
-    <div class="container-fluid" id="search-results-row" style="display: none;">
+    <div class="container-fluid mb-4" id="search-results-row" style="display: none;">
         <div class="row g-3 my-2">
-            <!-- Management Card -->
-            <div class="col-lg-6" id="management-details-container" style="display: none;">
+            <!-- Management Card - WIDTH FIXED (col-12) -->
+            <div class="col-12" id="management-details-container" style="display: none;">
                 <div class="card h-100">
                     <div class="card-body">
                         <h5 class="card-title d-flex justify-content-between">
-                            <span id="management-name"></span>
+                            <span>
+                                <span id="management-name"></span>
+                                <span class="badge bg-secondary ms-2">Management</span>
+                            </span>
                             <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('global-search').value = ''; handleGlobalSearch({ target: { value: '' } });"></button>
                         </h5>
                         <div class="d-flex flex-wrap gap-3">
@@ -70,12 +73,15 @@
                     </div>
                 </div>
             </div>
-            <!-- Candidate Card -->
-            <div class="col-lg-6" id="candidate-details-container" style="display: none;">
+            <!-- Candidate Card - WIDTH FIXED (col-12) -->
+            <div class="col-12" id="candidate-details-container" style="display: none;">
                 <div class="card h-100">
                     <div class="card-body">
                          <h5 class="card-title d-flex justify-content-between">
-                            <span id="office-name"></span>
+                            <span>
+                                <span id="office-name"></span>
+                                <span class="badge bg-info text-dark ms-2">Employment Office</span>
+                            </span>
                             <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('global-search').value = ''; handleGlobalSearch({ target: { value: '' } });"></button>
                         </h5>
                         <div class="chart-container">
