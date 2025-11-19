@@ -147,7 +147,7 @@ function updateDashboard() {
     const rosterStats = processRosterData(filter);
     const candidateStats = processCandidateData(filter);
     
-    // --- Render KPI Cards (Request 5) ---
+    // --- Render KPI Cards ---
     const verificationRate = rosterStats.totalSchools > 0 ? ((rosterStats.totalVerified / rosterStats.totalSchools) * 100).toFixed(1) : 0;
     
     document.getElementById('kpi-total-owed').textContent = Math.round(rosterStats.totalPostsOwed).toLocaleString();
@@ -159,11 +159,11 @@ function updateDashboard() {
     document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
     document.getElementById('kpi-rti-entries').textContent = candidateStats.totalRTIEntries.toLocaleString();
 
-    // --- Render Charts (Request 6) ---
+    // --- Render Charts ---
     renderSupplyDemandChart(rosterStats.totalPostsOwed, candidateStats.totalSupply);
     renderVerificationChart(rosterStats.totalVerified, rosterStats.totalSchools);
     
-    // 6e: "Action on Owed Posts"
+    // Action on Owed Posts
     const unaccounted = rosterStats.totalPostsOwed - rosterStats.totalManagerAppointed - rosterStats.totalReported;
     renderActionOnOwedChart({
         'Filled by Mgmt': rosterStats.totalManagerAppointed,
@@ -213,12 +213,12 @@ function processRosterData(filter) {
             if (entry[catKey] && entry[catKey].length > 0) {
                 const data = entry[catKey][0];
                 
-                // 5a: Calculate total owed posts
+                // Calculate total owed posts
                 const owedFrom2017 = (data.appo_2017 || 0) * 0.03;
                 const owedAfter2017 = (data.appo_after_2017 || 0) * 0.04;
                 totalPostsOwed += owedFrom2017 + owedAfter2017;
 
-                // 5c, 5d, 5f: Other metrics
+                // Other metrics
                 totalManagerAppointed += data.manager_appo || 0;
                 totalReported += data.reported || 0;
                 totalLimbo += (data.not_approved || 0) + (data.not_appointed || 0);
@@ -398,9 +398,6 @@ function renderCandidateDisabilityChart(supplyByDisability) {
 
 // --- Interactive Search Filter Logic ---
 
-/**
- * Populates the search dropdown with SUFFIXES to differentiate entries.
- */
 function populateSearchFilters() {
     const datalist = document.getElementById('global-search-list');
     
@@ -415,10 +412,6 @@ function populateSearchFilters() {
     });
 }
 
-/**
- * Handles input from the global search bar.
- * Detects the suffix to show the correct card.
- */
 function handleGlobalSearch(e) {
     const selectedName = e.target.value;
     const resultsRow = document.getElementById('search-results-row');
@@ -428,7 +421,6 @@ function handleGlobalSearch(e) {
     let mgmtEntry = null;
     let candEntry = null;
 
-    // Check for suffixes to strictly identify the type
     if (selectedName.includes("(Management)")) {
         const rawName = selectedName.replace(" (Management)", "");
         mgmtEntry = allRosterData.find(m => m.name_of_management === rawName);
@@ -436,7 +428,6 @@ function handleGlobalSearch(e) {
         const rawName = selectedName.replace(" (Employment Office)", "");
         candEntry = allCandidateData.find(m => m.Office_Name === rawName);
     } else {
-        // Fallback for exact matches without suffix (if user typed exactly what was there before)
         mgmtEntry = allRosterData.find(m => m.name_of_management === selectedName);
         candEntry = allCandidateData.find(m => m.Office_Name === selectedName);
     }
@@ -459,12 +450,13 @@ function handleGlobalSearch(e) {
 
 /**
  * Populates the Management search result card
- * UPDATED: Adds Backlog, Unaccounted, and Vacant columns
+ * UPDATED to include "Not Approved" in table and KPI
  */
 function renderManagementCard(entry) {
     let totalOwed = 0;
     let totalFilled = 0;
-    // Updated Table Header
+    let totalNotApproved = 0;
+
     let tableHtml = `
         <thead class="table-light">
             <tr>
@@ -474,6 +466,7 @@ function renderManagementCard(entry) {
                 <th title="Owed - Filled">Backlog</th>
                 <th title="Backlog - Reported">Unreported</th>
                 <th title="Not Appointed">Vacant</th>
+                <th title="Not Approved">Not Approved</th>
             </tr>
         </thead>
         <tbody>
@@ -488,16 +481,17 @@ function renderManagementCard(entry) {
             row = entry[catKey][0];
         }
 
-        // Calculations
         const owed = (row.appo_2017 * 0.03) + (row.appo_after_2017 * 0.04);
         const filled = row.manager_appo || 0;
-        const backlog = Math.max(0, owed - filled); // Required to complete reservation
+        const backlog = Math.max(0, owed - filled); 
         const reported = row.reported || 0;
-        const unreported = Math.max(0, backlog - reported); // Still pending action
-        const vacant = row.not_appointed || 0; // Kept vacant
+        const unreported = Math.max(0, backlog - reported); 
+        const vacant = row.not_appointed || 0; 
+        const notApproved = row.not_approved || 0;
 
         totalOwed += owed;
         totalFilled += filled;
+        totalNotApproved += notApproved;
         
         tableHtml += `
             <tr>
@@ -507,6 +501,7 @@ function renderManagementCard(entry) {
                 <td class="fw-bold">${backlog.toFixed(2)}</td>
                 <td class="text-warning">${unreported.toFixed(2)}</td>
                 <td class="text-muted">${vacant}</td>
+                <td class="text-danger">${notApproved}</td>
             </tr>
         `;
     }
@@ -516,6 +511,7 @@ function renderManagementCard(entry) {
     document.getElementById('mgmt-kpi-status').textContent = `${entry.verf_status[0]} / ${entry.verf_status[1]}`;
     document.getElementById('mgmt-kpi-owed').textContent = totalOwed.toFixed(2);
     document.getElementById('mgmt-kpi-filled').textContent = totalFilled;
+    document.getElementById('mgmt-kpi-not-approved').textContent = totalNotApproved;
     document.getElementById('management-table').innerHTML = tableHtml;
 }
 
@@ -546,7 +542,6 @@ function renderCandidateCard(entry) {
 }
 
 function getCategoryName(index) {
-    // Fixed the syntax error here (removed the stray '*')
     const simpleNames = ['LPST', 'UPST', 'Non-Teaching', 'HST', 'HSST', 'VHST Sr', 'VHST Jr'];
     return simpleNames[index - 1] || `Cat ${index}`;
 }
