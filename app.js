@@ -457,17 +457,23 @@ function handleGlobalSearch(e) {
     }
 }
 
+/**
+ * Populates the Management search result card
+ * UPDATED: Adds Backlog, Unaccounted, and Vacant columns
+ */
 function renderManagementCard(entry) {
     let totalOwed = 0;
     let totalFilled = 0;
+    // Updated Table Header
     let tableHtml = `
         <thead class="table-light">
             <tr>
                 <th>Category</th>
-                <th>Owed (Law)</th>
-                <th>Filled (Mgmt)</th>
-                <th>Reported</th>
-                <th>Not Approved</th>
+                <th title="Owed by Law">Owed</th>
+                <th title="Filled by Mgmt">Filled</th>
+                <th title="Owed - Filled">Backlog</th>
+                <th title="Backlog - Reported">Unreported</th>
+                <th title="Not Appointed">Vacant</th>
             </tr>
         </thead>
         <tbody>
@@ -482,17 +488,25 @@ function renderManagementCard(entry) {
             row = entry[catKey][0];
         }
 
+        // Calculations
         const owed = (row.appo_2017 * 0.03) + (row.appo_after_2017 * 0.04);
+        const filled = row.manager_appo || 0;
+        const backlog = Math.max(0, owed - filled); // Required to complete reservation
+        const reported = row.reported || 0;
+        const unreported = Math.max(0, backlog - reported); // Still pending action
+        const vacant = row.not_appointed || 0; // Kept vacant
+
         totalOwed += owed;
-        totalFilled += row.manager_appo || 0;
+        totalFilled += filled;
         
         tableHtml += `
             <tr>
                 <td>${catName}</td>
-                <td>${owed.toFixed(2)}</td>
-                <td>${row.manager_appo || 0}</td>
-                <td>${row.reported || 0}</td>
-                <td>${row.not_approved || 0}</td>
+                <td class="text-danger fw-bold">${owed.toFixed(2)}</td>
+                <td class="text-success">${filled}</td>
+                <td class="fw-bold">${backlog.toFixed(2)}</td>
+                <td class="text-warning">${unreported.toFixed(2)}</td>
+                <td class="text-muted">${vacant}</td>
             </tr>
         `;
     }
