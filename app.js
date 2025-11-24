@@ -14,8 +14,6 @@ const CHART_COLORS = {
 };
 
 // --- Category Mappings ---
-// ROSTER side: Maps internal keys to roster categories
-// Cat 1 in Roster = Primary (Combined LPST/UPST)
 const ROSTER_CATEGORY_MAP = {
     'LPST': ['category_01'], // Maps to combined Primary
     'UPST': ['category_01'], // Maps to combined Primary
@@ -25,22 +23,12 @@ const ROSTER_CATEGORY_MAP = {
     'HSST': ['category_04', 'category_05', 'category_06', 'category_07'],
 };
 
-// Distinct list for "Teaching" to avoid double counting Cat 1
 ROSTER_CATEGORY_MAP.Teaching = [
-    'category_01', // Primary
-    'category_02', // HST
-    'category_04', // HSST Sr
-    'category_05', // HSST Jr
-    'category_06', // VHST Sr
-    'category_07'  // VHST Jr
+    'category_01', 'category_02', 'category_04', 'category_05', 'category_06', 'category_07'
 ];
 
-ROSTER_CATEGORY_MAP.All = [
-    ...ROSTER_CATEGORY_MAP.Teaching,
-    'category_03' // NonTeaching
-];
+ROSTER_CATEGORY_MAP.All = [ ...ROSTER_CATEGORY_MAP.Teaching, 'category_03' ];
 
-// CANDIDATE side: These are distinct in the source JSON
 const CANDIDATE_CATEGORY_MAP = {
     'LPST': ['LPST'],
     'UPST': ['UPST'],
@@ -56,34 +44,32 @@ CANDIDATE_CATEGORY_MAP.All = [...CANDIDATE_CATEGORY_MAP.Teaching, 'NonTeaching']
 
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", () => {
-    // Init Popovers
-    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
-    [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
+    // Init Tooltips
+    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
 
     fetchTimestamps();
     loadAllData();
     setupFilterListeners();
 });
 
-// --- Fetch Timestamps ---
 async function fetchTimestamps() {
     try {
         const rosterCommitResponse = await fetch(`${GITHUB_REPO_URL}/commits?path=roster_data.json&per_page=1`);
         const rosterCommits = await rosterCommitResponse.json();
         if (rosterCommits && rosterCommits.length > 0) {
-            document.getElementById('roster-update-time').textContent = `Roster: ${new Date(rosterCommits[0].commit.author.date).toLocaleString()}`;
+            document.getElementById('roster-update-time').textContent = `Roster: ${new Date(rosterCommits[0].commit.author.date).toLocaleDateString()}`;
         }
         const candidateCommitResponse = await fetch(`${GITHUB_REPO_URL}/commits?path=candidates.json&per_page=1`);
         const candidateCommits = await candidateCommitResponse.json();
         if (candidateCommits && candidateCommits.length > 0) {
-            document.getElementById('candidate-update-time').textContent = `Candidates: ${new Date(candidateCommits[0].commit.author.date).toLocaleString()}`;
+            document.getElementById('candidate-update-time').textContent = `Candidates: ${new Date(candidateCommits[0].commit.author.date).toLocaleDateString()}`;
         }
     } catch (e) {
         console.error("Error fetching timestamps:", e);
     }
 }
 
-// --- Load Data ---
 async function loadAllData() {
     try {
         const [rosterResponse, candidatesResponse] = await Promise.all([
@@ -94,17 +80,18 @@ async function loadAllData() {
         allCandidateData = await candidatesResponse.json();
 
         populateSearchFilters();
-        updateDashboard(); // Initial render
+        updateDashboard(); 
+        
+        // Show guide modal on first load
+        const myModal = new bootstrap.Modal(document.getElementById('introModal'));
+        myModal.show();
 
     } catch (error) {
         console.error("Failed to load data:", error);
-        alert("Error: Could not load data files. Ensure roster_data.json and candidates.json are present.");
     }
 }
 
-// --- Event Listeners ---
 function setupFilterListeners() {
-    // Main Filter
     document.getElementById('filter-main').addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
             e.currentTarget.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
@@ -116,7 +103,6 @@ function setupFilterListeners() {
         }
     });
     
-    // Sub Filter
     document.getElementById('filter-sub').addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
             e.currentTarget.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
@@ -125,20 +111,18 @@ function setupFilterListeners() {
         }
     });
     
-    // Search Input
     document.getElementById('global-search').addEventListener('input', handleGlobalSearch);
 }
 
-// --- Core Update Function ---
 function updateDashboard() {
     const filter = getActiveFilter();
     
     const rosterStats = processRosterData(filter);
     const candidateStats = processCandidateData(filter);
     
-    // Update Global KPIs
     const verificationRate = rosterStats.totalSchools > 0 ? ((rosterStats.totalVerified / rosterStats.totalSchools) * 100).toFixed(1) : 0;
     
+    // Update KPIs
     document.getElementById('kpi-total-owed').textContent = Math.round(rosterStats.totalPostsOwed).toLocaleString();
     document.getElementById('kpi-total-supply').textContent = candidateStats.totalSupply.toLocaleString();
     document.getElementById('kpi-total-filled').textContent = rosterStats.totalManagerAppointed.toLocaleString();
@@ -148,6 +132,15 @@ function updateDashboard() {
     document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
     document.getElementById('kpi-rti-entries').textContent = candidateStats.totalRTIEntries.toLocaleString();
 
+    // Update Supply Detail Text
+    if (filter.type === 'All') {
+        const nonTeachStats = processCandidateData({type: 'NonTeaching'});
+        const nonTeachPct = Math.round((nonTeachStats.totalSupply / candidateStats.totalSupply) * 100);
+        document.getElementById('kpi-supply-detail').textContent = `Caution: ${nonTeachPct}% are Non-Teaching Candidates`;
+    } else {
+        document.getElementById('kpi-supply-detail').textContent = filter.type;
+    }
+
     // Update Charts
     renderSupplyDemandChart(rosterStats.totalPostsOwed, candidateStats.totalSupply);
     renderVerificationChart(rosterStats.totalVerified, rosterStats.totalSchools);
@@ -156,13 +149,12 @@ function updateDashboard() {
     renderActionOnOwedChart({
         'Filled by Mgmt': rosterStats.totalManagerAppointed,
         'Reported to Exchange': rosterStats.totalReported,
-        'Unaccounted': Math.max(0, unaccounted),
+        'Unaccounted': Math.max(0, unaccounted), // Logic remains: Max 0.
     });
     
     renderCandidateSupplyChart(candidateStats.supplyByPost);
     renderCandidateDisabilityChart(candidateStats.supplyByDisability);
 
-    // Update Findings
     renderKeyFindings();
 }
 
@@ -176,12 +168,10 @@ function getActiveFilter() {
     return { type: main };
 }
 
-// --- Data Processing: Roster (Demand) ---
 function processRosterData(filter) {
     let totalVerified = 0, totalSchools = 0, totalLimbo = 0;
     let totalPostsOwed = 0, totalManagerAppointed = 0, totalReported = 0, totalNotApproved = 0, totalVacant = 0;
 
-    // Get unique keys to avoid double counting merged categories (like Primary)
     const keysToProcess = [...new Set(ROSTER_CATEGORY_MAP[filter.type] || [])];
     
     allRosterData.forEach(entry => {
@@ -192,7 +182,6 @@ function processRosterData(filter) {
             if (entry[catKey] && entry[catKey].length > 0) {
                 const data = entry[catKey][0];
                 
-                // 3% of pre-2017 + 4% of post-2017
                 const owed = ((data.appo_2017 || 0) * 0.03) + ((data.appo_after_2017 || 0) * 0.04);
                 totalPostsOwed += owed;
 
@@ -200,7 +189,7 @@ function processRosterData(filter) {
                 totalReported += data.reported || 0;
                 
                 const notApproved = data.not_approved || 0;
-                const notAppointed = data.not_appointed || 0; // Vacant
+                const notAppointed = data.not_appointed || 0; 
                 
                 totalNotApproved += notApproved;
                 totalVacant += notAppointed;
@@ -217,7 +206,6 @@ function processRosterData(filter) {
     };
 }
 
-// --- Data Processing: Candidates (Supply) ---
 function processCandidateData(filter) {
     let totalSupply = 0;
     const supplyByPost = {};
@@ -231,11 +219,7 @@ function processCandidateData(filter) {
                 const data = entry[catKey];
                 const total = data.Total || 0;
                 totalSupply += total;
-                
-                // Aggregate Supply by Post
                 supplyByPost[catKey] = (supplyByPost[catKey] || 0) + total;
-                
-                // Aggregate Supply by Disability
                 supplyByDisability['Visually Impaired'] += data.VisuallyImpaired || 0;
                 supplyByDisability['Hearing Impairment'] += data.HearingImpairment || 0;
                 supplyByDisability['LD'] += data.LD || 0;
@@ -247,7 +231,6 @@ function processCandidateData(filter) {
     return { totalSupply, supplyByPost, supplyByDisability, totalRTIEntries: allCandidateData.length };
 }
 
-// --- Key Findings ---
 function renderKeyFindings() {
     try {
         const allRoster = processRosterData({ type: 'All' });
@@ -256,15 +239,18 @@ function renderKeyFindings() {
         const nonTeachRoster = processRosterData({ type: 'NonTeaching' });
         const nonTeachCand = processCandidateData({ type: 'NonTeaching' });
 
+        // 1. The Illusion Check
+        let mismatchText = `Teaching shortage (<strong>${teachCand.totalSupply.toLocaleString()}</strong> available for <strong>${Math.round(teachRoster.totalPostsOwed).toLocaleString()}</strong> owed), but Non-Teaching surplus.`;
+        
         document.getElementById('finding-1').innerHTML = 
-            `<strong>Qualification Mismatch:</strong> Teaching shortage (<strong>${teachCand.totalSupply.toLocaleString()}</strong> available for <strong>${Math.round(teachRoster.totalPostsOwed).toLocaleString()}</strong> owed), but Non-Teaching surplus (<strong>${nonTeachCand.totalSupply.toLocaleString()}</strong> available for <strong>${Math.round(nonTeachRoster.totalPostsOwed).toLocaleString()}</strong> owed).`;
+            `<strong>The Data Illusion:</strong> <strong>${nonTeachCand.totalSupply.toLocaleString()}</strong> of the available candidates are for Non-Teaching posts. <br>For <strong>Teaching</strong> posts specifically, there is a shortage of qualified candidates compared to the owed posts.`;
             
         const unaccounted = allRoster.totalPostsOwed - allRoster.totalManagerAppointed - allRoster.totalReported;
         document.getElementById('finding-2').innerHTML = 
-            `<strong>Action Gap:</strong> Of <strong>${allRoster.totalPostsOwed.toLocaleString()}</strong> owed, <strong>${allRoster.totalManagerAppointed.toLocaleString()}</strong> filled and <strong>${allRoster.totalReported.toLocaleString()}</strong> reported. <strong>${Math.max(0, Math.round(unaccounted)).toLocaleString()}</strong> posts are unaccounted for.`;
+            `<strong>Action Gap:</strong> Of <strong>${allRoster.totalPostsOwed.toLocaleString()}</strong> owed, <strong>${allRoster.totalManagerAppointed.toLocaleString()}</strong> filled and <strong>${allRoster.totalReported.toLocaleString()}</strong> reported. <strong>${Math.max(0, Math.round(unaccounted)).toLocaleString()}</strong> posts are currently unaccounted for.`;
 
         document.getElementById('finding-3').innerHTML = 
-            `<strong>Administrative Logjam:</strong> <strong>${allRoster.totalLimbo.toLocaleString()}</strong> appointments are stuck in "Limbo" (Not Approved or Vacant).`;
+            `<strong>Administrative Logjam:</strong> <strong>${allRoster.totalLimbo.toLocaleString()}</strong> total appointments are stuck in "Limbo" (Not Approved or Vacant).`;
 
     } catch (e) {
         console.error("Error rendering findings:", e);
@@ -381,12 +367,10 @@ function handleGlobalSearch(e) {
     }
 }
 
-// --- Render Card: Management ---
 function renderManagementCard(entry) {
     let tOwed = 0, tFilled = 0, tNotApproved = 0, tVacant = 0;
     let html = `<thead class="table-light"><tr><th>Category</th><th>Owed</th><th>Filled</th><th>Backlog</th><th>Unreported</th><th>Vacant</th><th>Not Approved</th></tr></thead><tbody>`;
 
-    // Order: 1 (Primary), 2 (HST), 3 (NonTeaching), 4 (HSST Sr), 5 (HSST Jr), 6 (VHST Sr), 7 (VHST Jr)
     for (let i = 1; i <= 7; i++) {
         const catName = getCategoryName(i);
         const catKey = `category_${String(i).padStart(2, '0')}`;
@@ -424,7 +408,6 @@ function renderManagementCard(entry) {
     document.getElementById('management-table').innerHTML = html;
 }
 
-// --- Render Card: Candidate ---
 function renderCandidateCard(entry) {
     document.getElementById('office-name').textContent = entry.Office_Name;
     const ctx = document.getElementById('candidateOfficeChart').getContext('2d');
