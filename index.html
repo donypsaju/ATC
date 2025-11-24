@@ -8,87 +8,85 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     
-    <!-- Custom CSS (Minimal) -->
+    <!-- Custom CSS -->
     <style>
         .chart-container { position: relative; height: 350px; width: 100%; }
         .chart-container-donut { position: relative; height: 350px; width: 100%; max-width: 350px; margin: 0 auto; }
         .btn-group-xs .btn { padding: .25rem .5rem; font-size: .875rem; }
-        /* Style for the popover calculation */
         .calc-info { cursor: help; font-style: italic; border-bottom: 1px dotted; }
+        
+        /* Card visual improvements */
+        .card { border: 1px solid rgba(255,255,255,0.1); }
+        .kpi-value { font-weight: 700; }
     </style>
 </head>
 <body class="bg-body-tertiary">
 
-    <!-- 1. HEADER (Navbar) -->
-    <nav class="navbar bg-body-tertiary border-bottom border-body-tertiary p-3">
+    <!-- 1. HEADER -->
+    <nav class="navbar bg-body-tertiary border-bottom border-body-tertiary p-3 sticky-top">
         <div class="container-fluid">
-            <!-- Website Name -->
             <a class="navbar-brand fw-bold" href="#">PWD Reservation Dashboard</a>
             
-            <!-- Search Box -->
             <form class="d-flex w-50" role="search" onsubmit="return false;">
                 <input class="form-control" type="search" id="global-search" list="global-search-list" placeholder="Search Management or Employment Office...">
                 <datalist id="global-search-list"></datalist>
             </form>
             
-            <!-- Data Freshness -->
             <div class="d-none d-lg-flex flex-column text-end">
-                <span class="small" id="roster-update-time">Roster: Loading...</span>
-                <span class="small" id="candidate-update-time">Candidates: Loading...</span>
+                <span class="small text-muted" id="roster-update-time">Roster: Loading...</span>
+                <span class="small text-muted" id="candidate-update-time">Candidates: Loading...</span>
             </div>
         </div>
     </nav>
 
     <!-- 2. SEARCH RESULTS (Hidden by default) -->
-    <div class="container-fluid mb-4" id="search-results-row" style="display: none;">
-        <div class="row g-3 my-2">
-            <!-- Management Card - WIDTH FIXED (col-12) -->
+    <div class="container-fluid mb-4 mt-3" id="search-results-row" style="display: none;">
+        <div class="row g-3">
+            <!-- Management Card (Full Width) -->
             <div class="col-12" id="management-details-container" style="display: none;">
-                <div class="card h-100">
+                <div class="card h-100 border-primary">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><span id="management-name"></span> <span class="badge bg-primary ms-2">Management</span></h5>
+                        <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('global-search').value = ''; handleGlobalSearch({ target: { value: '' } });"></button>
+                    </div>
                     <div class="card-body">
-                        <h5 class="card-title d-flex justify-content-between">
-                            <span>
-                                <span id="management-name"></span>
-                                <span class="badge bg-secondary ms-2">Management</span>
-                            </span>
-                            <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('global-search').value = ''; handleGlobalSearch({ target: { value: '' } });"></button>
-                        </h5>
-                        <div class="d-flex flex-wrap gap-3">
-                            <div class="kpi-item">
-                                <div class="text-body-secondary small">Verification</div>
-                                <div class="fs-4" id="mgmt-kpi-status">--</div>
+                        <div class="row g-3 mb-3 text-center">
+                            <div class="col-md-2 col-6">
+                                <div class="text-muted small">Verification</div>
+                                <div class="fs-4 fw-bold" id="mgmt-kpi-status">--</div>
                             </div>
-                            <div class="kpi-item text-danger">
-                                <div class="text-body-secondary small">Posts Owed (Law)</div>
-                                <div class="fs-4" id="mgmt-kpi-owed">--</div>
+                            <div class="col-md-2 col-6">
+                                <div class="text-muted small">Posts Owed (Law)</div>
+                                <div class="fs-4 fw-bold text-danger" id="mgmt-kpi-owed">--</div>
                             </div>
-                            <div class="kpi-item text-success">
-                                <div class="text-body-secondary small">Posts Filled</div>
-                                <div class="fs-4" id="mgmt-kpi-filled">--</div>
+                            <div class="col-md-2 col-6">
+                                <div class="text-muted small">Posts Filled</div>
+                                <div class="fs-4 fw-bold text-success" id="mgmt-kpi-filled">--</div>
                             </div>
-                            <!-- NEW KPI ADDED HERE -->
-                            <div class="kpi-item text-warning">
-                                <div class="text-body-secondary small">Not Approved</div>
-                                <div class="fs-4" id="mgmt-kpi-not-approved">--</div>
+                            <div class="col-md-2 col-6">
+                                <div class="text-muted small">Not Approved</div>
+                                <div class="fs-4 fw-bold text-warning" id="mgmt-kpi-not-approved">--</div>
+                            </div>
+                             <div class="col-md-2 col-6">
+                                <div class="text-muted small">Vacant</div>
+                                <div class="fs-4 fw-bold" id="mgmt-kpi-vacant">--</div>
                             </div>
                         </div>
-                        <div class="table-responsive mt-3">
-                            <table class="table table-sm" id="management-table"></table>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover table-bordered" id="management-table"></table>
                         </div>
                     </div>
                 </div>
             </div>
-            <!-- Candidate Card - WIDTH FIXED (col-12) -->
+
+            <!-- Candidate Card (Full Width) -->
             <div class="col-12" id="candidate-details-container" style="display: none;">
-                <div class="card h-100">
+                <div class="card h-100 border-info">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><span id="office-name"></span> <span class="badge bg-info text-dark ms-2">Employment Office</span></h5>
+                        <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('global-search').value = ''; handleGlobalSearch({ target: { value: '' } });"></button>
+                    </div>
                     <div class="card-body">
-                         <h5 class="card-title d-flex justify-content-between">
-                            <span>
-                                <span id="office-name"></span>
-                                <span class="badge bg-info text-dark ms-2">Employment Office</span>
-                            </span>
-                            <button type="button" class="btn-close" aria-label="Close" onclick="document.getElementById('global-search').value = ''; handleGlobalSearch({ target: { value: '' } });"></button>
-                        </h5>
                         <div class="chart-container">
                             <canvas id="candidateOfficeChart"></canvas>
                         </div>
@@ -101,13 +99,13 @@
     <!-- 3. MAIN DASHBOARD -->
     <div class="container-fluid my-3">
         
-        <!-- Filter Row -->
-        <div class="row g-3">
+        <!-- Filters -->
+        <div class="row g-3 mb-3">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-body d-flex flex-wrap gap-3">
+                    <div class="card-body d-flex flex-wrap gap-3 align-items-center">
                         <div class="filter-group">
-                            <div class="text-body-secondary small mb-1">Filter Data By</div>
+                            <div class="text-secondary small mb-1 fw-bold">Filter Data By</div>
                             <div class="btn-group" role="group" id="filter-main">
                                 <button type="button" class="btn btn-outline-primary active" data-filter="All">All Posts</button>
                                 <button type="button" class="btn btn-outline-primary" data-filter="Teaching">Teaching</button>
@@ -115,12 +113,12 @@
                             </div>
                         </div>
                         <div class="filter-group" id="sub-filter-container" style="display: none;">
-                            <div class="text-body-secondary small mb-1">Teaching Category</div>
+                            <div class="text-secondary small mb-1 fw-bold">Teaching Category</div>
                             <div class="btn-group btn-group-xs flex-wrap" role="group" id="filter-sub">
                                 <button type="button" class="btn btn-outline-secondary active" data-filter="All">All Teaching</button>
                                 <button type="button" class="btn btn-outline-secondary" data-filter="Primary">Primary (LP+UP)</button>
-                                <button type="button" class="btn btn-outline-secondary" data-filter="LPST">LPST</button>
-                                <button type="button" class="btn btn-outline-secondary" data-filter="UPST">UPST</button>
+                                <button type="button" class="btn btn-outline-secondary" data-filter="LPST">LPST (Supply Only)</button>
+                                <button type="button" class="btn btn-outline-secondary" data-filter="UPST">UPST (Supply Only)</button>
                                 <button type="button" class="btn btn-outline-secondary" data-filter="HST">HST</button>
                                 <button type="button" class="btn btn-outline-secondary" data-filter="HSST">HSST</button>
                             </div>
@@ -130,12 +128,12 @@
             </div>
         </div>
 
-        <!-- Key Findings Row -->
-        <div class="row g-3 my-2">
+        <!-- Key Findings -->
+        <div class="row g-3 mb-3">
             <div class="col-12">
-                <div class="card text-bg-warning">
+                <div class="card text-bg-warning bg-opacity-10 border-warning">
                     <div class="card-body">
-                        <h5 class="card-title">Key Findings (Based on "All Posts" Data)</h5>
+                        <h5 class="card-title text-warning-emphasis"><i class="bi bi-lightbulb"></i> Key Findings (Based on "All Posts" Data)</h5>
                         <ul class="fs-5 mb-0" id="key-findings-list">
                             <li id="finding-1">Calculating...</li>
                             <li id="finding-2">Calculating...</li>
@@ -146,79 +144,80 @@
             </div>
         </div>
 
-        <!-- KPI Card Row -->
-        <div class="row g-3 my-2">
-            <div class="col-lg-3 col-md-4 col-sm-6">
+        <!-- KPI Cards (4x2 Grid) -->
+        <div class="row g-3 mb-3">
+            <!-- Row 1 of KPIs -->
+            <div class="col-lg-3 col-md-6">
                 <div class="card text-bg-danger h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary-dark small">Total Posts Owed (Demand) 
-                            <span class="calc-info" data-bs-toggle="popover" data-bs-trigger="hover" 
-                                  data-bs-placement="top" data-bs-content="3% of pre-2017 appointments + 4% of post-2017 appointments">(?)</span>
-                        </div>
+                        <div class="small opacity-75">Total Posts Owed (Demand) <span class="calc-info" data-bs-toggle="popover" data-bs-trigger="hover" data-bs-content="3% of pre-2017 appts + 4% of post-2017 appts">(?)</span></div>
                         <div class="fs-1 fw-bold" id="kpi-total-owed">--</div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="col-lg-3 col-md-6">
                 <div class="card text-bg-primary h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary-dark small">Available Candidates (Supply)</div>
+                        <div class="small opacity-75">Available Candidates (Supply)</div>
                         <div class="fs-1 fw-bold" id="kpi-total-supply">--</div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-warning">
+                    <div class="card-body">
+                        <div class="text-secondary small">Total Posts in Limbo</div>
+                        <div class="fs-1 fw-bold text-warning" id="kpi-total-limbo">--</div>
+                        <div class="small text-muted">(Not Approved + Vacant)</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
                 <div class="card text-bg-success h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary-dark small">Posts Filled by Managements</div>
+                        <div class="small opacity-75">Posts Filled by Managements</div>
                         <div class="fs-1 fw-bold" id="kpi-total-filled">--</div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4 col-sm-6">
+
+            <!-- Row 2 of KPIs -->
+            <div class="col-lg-3 col-md-6">
                 <div class="card text-bg-info h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary-dark small">Posts Reported to Exchange</div>
-                        <div class="fs-1 fw-bold" id="kpi-total-reported">--</div>
+                        <div class="small opacity-75 text-dark">Posts Reported to Exchange</div>
+                        <div class="fs-1 fw-bold text-dark" id="kpi-total-reported">--</div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="col-lg-3 col-md-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary small">Total Posts in Limbo</div>
-                        <div class="fs-1 fw-bold" id="kpi-total-limbo">--</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-4 col-sm-6">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="text-body-secondary small">Verification Status</div>
+                        <div class="text-secondary small">Verification Status</div>
                         <div class="fs-1 fw-bold" id="kpi-verification-rate">--%</div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="col-lg-3 col-md-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary small">Managements Tracked</div>
+                        <div class="text-secondary small">Managements Tracked</div>
                         <div class="fs-1 fw-bold" id="kpi-total-managements">--</div>
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-4 col-sm-6">
+            <div class="col-lg-3 col-md-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <div class="text-body-secondary small">Employment Office Entries</div>
+                        <div class="text-secondary small">RTI Entries (Offices)</div>
                         <div class="fs-1 fw-bold" id="kpi-rti-entries">--</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Chart Row -->
-        <div class="row g-3 my-2">
+        <!-- Charts -->
+        <div class="row g-3">
             <div class="col-lg-6">
                 <div class="card h-100">
                     <div class="card-body">
@@ -242,7 +241,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Candidates by Disability (Supply)</h5>
+                        <h5 class="card-title">Candidates by Disability</h5>
                         <div class="chart-container-donut">
                             <canvas id="candidateDisabilityChart"></canvas>
                         </div>
@@ -252,7 +251,7 @@
             <div class="col-lg-4 col-md-6">
                 <div class="card h-100">
                     <div class="card-body">
-                        <h5 class="card-title">Candidates by Post (Supply)</h5>
+                        <h5 class="card-title">Candidates by Post</h5>
                         <div class="chart-container">
                             <canvas id="candidatePostChart"></canvas>
                         </div>
@@ -273,13 +272,9 @@
 
     </div>
 
-    <!-- Bootstrap JS Bundle -->
+    <!-- JS Bundle -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <!-- Your JS Files -->
     <script src="config.js"></script>
     <script src="app.js"></script>
 </body>

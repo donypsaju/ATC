@@ -1,10 +1,9 @@
 // --- Global Data Store ---
 let allRosterData = [];
 let allCandidateData = [];
-let chartInstances = {}; // To manage and destroy old charts
-let popoverInstance = null; // To manage the popover
+let chartInstances = {}; 
 
-// --- Chart Colors (Bootstrap 5 Dark-Theme Friendly) ---
+// --- Chart Colors ---
 const CHART_COLORS = {
     blue: 'rgb(54, 162, 235)',
     green: 'rgb(75, 192, 192)',
@@ -14,34 +13,22 @@ const CHART_COLORS = {
     grey: 'rgb(101, 103, 107)',
 };
 
-// --- Category Mappings (FIXED 100%) ---
-// Roster Data Structure:
-// Cat 1 = Primary (Includes BOTH LPST and UPST) - Cannot be separated
-// Cat 2 = High School (HST)
-// Cat 3 = Non Teaching
-// Cat 4 = HSST Sr.
-// Cat 5 = HSST Jr.
-// Cat 6 = VHST Sr.
-// Cat 7 = VHST Jr.
-
+// --- Category Mappings ---
+// ROSTER side: Maps internal keys to roster categories
+// Cat 1 in Roster = Primary (Combined LPST/UPST)
 const ROSTER_CATEGORY_MAP = {
-    // CRITICAL CHANGE: LPST and UPST both map to 'category_01' 
-    // because the roster does not separate them.
-    'LPST': ['category_01'],
-    'UPST': ['category_01'],
-    'Primary': ['category_01'], 
-    
-    'HST': ['category_02'], // High School
-    
+    'LPST': ['category_01'], // Maps to combined Primary
+    'UPST': ['category_01'], // Maps to combined Primary
+    'Primary': ['category_01'],
+    'HST': ['category_02'],
     'NonTeaching': ['category_03'],
-    
-    'HSST': ['category_04', 'category_05', 'category_06', 'category_07'], // Grouping all Higher Secondary
+    'HSST': ['category_04', 'category_05', 'category_06', 'category_07'],
 };
 
-// Manual definition for "Teaching" to ensure Category 01 is counted ONLY ONCE
+// Distinct list for "Teaching" to avoid double counting Cat 1
 ROSTER_CATEGORY_MAP.Teaching = [
-    'category_01', // Primary (LP+UP)
-    'category_02', // High School
+    'category_01', // Primary
+    'category_02', // HST
     'category_04', // HSST Sr
     'category_05', // HSST Jr
     'category_06', // VHST Sr
@@ -53,32 +40,23 @@ ROSTER_CATEGORY_MAP.All = [
     'category_03' // NonTeaching
 ];
 
-// Candidate Data Structure (Supply):
-// These ARE separated in the JSON/Excel
+// CANDIDATE side: These are distinct in the source JSON
 const CANDIDATE_CATEGORY_MAP = {
     'LPST': ['LPST'],
     'UPST': ['UPST'],
     'NonTeaching': ['NonTeaching'],
     'HST': ['HST'],
     'HSST': ['HSST'],
-    'Primary': ['LPST', 'UPST'], // Sum of both for Primary view
+    'Primary': ['LPST', 'UPST'],
 };
 
-CANDIDATE_CATEGORY_MAP.Teaching = [
-    ...CANDIDATE_CATEGORY_MAP.LPST, 
-    ...CANDIDATE_CATEGORY_MAP.UPST,
-    ...CANDIDATE_CATEGORY_MAP.HST, 
-    ...CANDIDATE_CATEGORY_MAP.HSST
-];
+CANDIDATE_CATEGORY_MAP.Teaching = ['LPST', 'UPST', 'HST', 'HSST'];
+CANDIDATE_CATEGORY_MAP.All = [...CANDIDATE_CATEGORY_MAP.Teaching, 'NonTeaching'];
 
-CANDIDATE_CATEGORY_MAP.All = [
-    ...CANDIDATE_CATEGORY_MAP.Teaching, 
-    ...CANDIDATE_CATEGORY_MAP.NonTeaching
-];
 
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", () => {
-    // Initialize Bootstrap Popovers
+    // Init Popovers
     const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
     [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
 
@@ -87,9 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupFilterListeners();
 });
 
-/**
- * Fetches timestamps from GitHub API
- */
+// --- Fetch Timestamps ---
 async function fetchTimestamps() {
     try {
         const rosterCommitResponse = await fetch(`${GITHUB_REPO_URL}/commits?path=roster_data.json&per_page=1`);
@@ -104,14 +80,10 @@ async function fetchTimestamps() {
         }
     } catch (e) {
         console.error("Error fetching timestamps:", e);
-        document.getElementById('roster-update-time').textContent = "Roster: Error";
-        document.getElementById('candidate-update-time').textContent = "Candidates: Error";
     }
 }
 
-/**
- * Loads both JSON data files and triggers rendering
- */
+// --- Load Data ---
 async function loadAllData() {
     try {
         const [rosterResponse, candidatesResponse] = await Promise.all([
@@ -125,58 +97,46 @@ async function loadAllData() {
         updateDashboard(); // Initial render
 
     } catch (error) {
-        console.error("Failed to load or process data:", error);
-        if (typeof Chart === 'undefined') {
-            alert("Error: Chart.js library is missing. Please check the index.html file.");
-        } else {
-            alert("Error: Could not load data files. Make sure roster_data.json and candidates.json exist.");
-        }
+        console.error("Failed to load data:", error);
+        alert("Error: Could not load data files. Ensure roster_data.json and candidates.json are present.");
     }
 }
 
-/**
- * Sets up listeners for all filters
- */
+// --- Event Listeners ---
 function setupFilterListeners() {
-    // Main filter button group
+    // Main Filter
     document.getElementById('filter-main').addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
-            const buttons = e.currentTarget.querySelectorAll('button');
-            buttons.forEach(btn => btn.classList.remove('active'));
+            e.currentTarget.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
             
             const mainFilter = e.target.dataset.filter;
-            const subFilterContainer = document.getElementById('sub-filter-container');
-            subFilterContainer.style.display = (mainFilter === 'Teaching') ? 'block' : 'none';
-            
+            document.getElementById('sub-filter-container').style.display = (mainFilter === 'Teaching') ? 'block' : 'none';
             updateDashboard();
         }
     });
     
-    // Sub-filter button group
+    // Sub Filter
     document.getElementById('filter-sub').addEventListener('click', (e) => {
         if (e.target.tagName === 'BUTTON') {
-            const buttons = e.currentTarget.querySelectorAll('button');
-            buttons.forEach(btn => btn.classList.remove('active'));
+            e.currentTarget.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
             e.target.classList.add('active');
             updateDashboard();
         }
     });
     
-    // Global search input
+    // Search Input
     document.getElementById('global-search').addEventListener('input', handleGlobalSearch);
 }
 
-/**
- * Main function to re-calculate and re-render the entire dashboard
- */
+// --- Core Update Function ---
 function updateDashboard() {
     const filter = getActiveFilter();
     
     const rosterStats = processRosterData(filter);
     const candidateStats = processCandidateData(filter);
     
-    // --- Render KPI Cards ---
+    // Update Global KPIs
     const verificationRate = rosterStats.totalSchools > 0 ? ((rosterStats.totalVerified / rosterStats.totalSchools) * 100).toFixed(1) : 0;
     
     document.getElementById('kpi-total-owed').textContent = Math.round(rosterStats.totalPostsOwed).toLocaleString();
@@ -188,100 +148,80 @@ function updateDashboard() {
     document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
     document.getElementById('kpi-rti-entries').textContent = candidateStats.totalRTIEntries.toLocaleString();
 
-    // --- Render Charts ---
+    // Update Charts
     renderSupplyDemandChart(rosterStats.totalPostsOwed, candidateStats.totalSupply);
     renderVerificationChart(rosterStats.totalVerified, rosterStats.totalSchools);
     
-    // Action on Owed Posts
     const unaccounted = rosterStats.totalPostsOwed - rosterStats.totalManagerAppointed - rosterStats.totalReported;
     renderActionOnOwedChart({
         'Filled by Mgmt': rosterStats.totalManagerAppointed,
         'Reported to Exchange': rosterStats.totalReported,
-        'Unaccounted': Math.max(0, unaccounted), // Ensure it's not negative
+        'Unaccounted': Math.max(0, unaccounted),
     });
     
     renderCandidateSupplyChart(candidateStats.supplyByPost);
     renderCandidateDisabilityChart(candidateStats.supplyByDisability);
 
-    // --- Render Key Findings ---
-    renderKeyFindings(); 
+    // Update Findings
+    renderKeyFindings();
 }
 
-/**
- * Reads the current filter buttons
- */
 function getActiveFilter() {
-    const mainFilterBtn = document.querySelector('#filter-main .btn.active');
-    const main = mainFilterBtn ? mainFilterBtn.dataset.filter : 'All';
-    
+    const main = document.querySelector('#filter-main .btn.active').dataset.filter;
     let sub = 'All';
     if (main === 'Teaching') {
-        const subFilterBtn = document.querySelector('#filter-sub .btn.active');
-        sub = subFilterBtn ? subFilterBtn.dataset.filter : 'All';
+        sub = document.querySelector('#filter-sub .btn.active').dataset.filter;
     }
-
-    if (main === 'Teaching' && sub !== 'All') return { type: sub }; // LPST, Primary, etc.
-    return { type: main }; // All, Teaching, NonTeaching
+    if (main === 'Teaching' && sub !== 'All') return { type: sub };
+    return { type: main };
 }
 
-/**
- * Processes roster_data.json based on the active filter
- */
+// --- Data Processing: Roster (Demand) ---
 function processRosterData(filter) {
     let totalVerified = 0, totalSchools = 0, totalLimbo = 0;
-    let totalPostsOwed = 0, totalManagerAppointed = 0, totalReported = 0, totalNotApproved = 0;
+    let totalPostsOwed = 0, totalManagerAppointed = 0, totalReported = 0, totalNotApproved = 0, totalVacant = 0;
 
-    const keysToProcess = ROSTER_CATEGORY_MAP[filter.type] || [];
+    // Get unique keys to avoid double counting merged categories (like Primary)
+    const keysToProcess = [...new Set(ROSTER_CATEGORY_MAP[filter.type] || [])];
     
-    // Deduplicate keys (CRITICAL because LPST and UPST both map to cat_01)
-    const uniqueKeys = [...new Set(keysToProcess)];
-
     allRosterData.forEach(entry => {
-        // Verification status is always calculated
         totalVerified += entry.verf_status[0] || 0;
         totalSchools += entry.verf_status[1] || 0;
 
-        uniqueKeys.forEach(catKey => {
+        keysToProcess.forEach(catKey => {
             if (entry[catKey] && entry[catKey].length > 0) {
                 const data = entry[catKey][0];
                 
-                // Calculate total owed posts
-                const owedFrom2017 = (data.appo_2017 || 0) * 0.03;
-                const owedAfter2017 = (data.appo_after_2017 || 0) * 0.04;
-                totalPostsOwed += owedFrom2017 + owedAfter2017;
+                // 3% of pre-2017 + 4% of post-2017
+                const owed = ((data.appo_2017 || 0) * 0.03) + ((data.appo_after_2017 || 0) * 0.04);
+                totalPostsOwed += owed;
 
-                // Other metrics
                 totalManagerAppointed += data.manager_appo || 0;
                 totalReported += data.reported || 0;
-                totalLimbo += (data.not_approved || 0) + (data.not_appointed || 0);
-                totalNotApproved += data.not_approved || 0;
+                
+                const notApproved = data.not_approved || 0;
+                const notAppointed = data.not_appointed || 0; // Vacant
+                
+                totalNotApproved += notApproved;
+                totalVacant += notAppointed;
+                totalLimbo += (notApproved + notAppointed);
             }
         });
     });
     
     return { 
-        totalVerified, 
-        totalSchools, 
-        totalLimbo, 
-        totalPostsOwed: Math.round(totalPostsOwed), // Use whole numbers for clarity
-        totalManagerAppointed, 
-        totalReported,
-        totalNotApproved
+        totalVerified, totalSchools, 
+        totalLimbo, totalPostsOwed: Math.round(totalPostsOwed), 
+        totalManagerAppointed, totalReported,
+        totalNotApproved, totalVacant
     };
 }
 
-/**
- * Processes candidates.json based on the active filter
- */
+// --- Data Processing: Candidates (Supply) ---
 function processCandidateData(filter) {
     let totalSupply = 0;
     const supplyByPost = {};
-    const supplyByDisability = {
-        'Visually Impaired': 0,
-        'Hearing Impairment': 0,
-        'LD': 0,
-        'Others': 0
-    };
+    const supplyByDisability = { 'Visually Impaired': 0, 'Hearing Impairment': 0, 'LD': 0, 'Others': 0 };
     
     const keysToProcess = CANDIDATE_CATEGORY_MAP[filter.type] || [];
 
@@ -290,10 +230,12 @@ function processCandidateData(filter) {
             if (entry[catKey]) {
                 const data = entry[catKey];
                 const total = data.Total || 0;
-                
                 totalSupply += total;
+                
+                // Aggregate Supply by Post
                 supplyByPost[catKey] = (supplyByPost[catKey] || 0) + total;
                 
+                // Aggregate Supply by Disability
                 supplyByDisability['Visually Impaired'] += data.VisuallyImpaired || 0;
                 supplyByDisability['Hearing Impairment'] += data.HearingImpairment || 0;
                 supplyByDisability['LD'] += data.LD || 0;
@@ -302,64 +244,36 @@ function processCandidateData(filter) {
         });
     });
     
-    const totalRTIEntries = allCandidateData.length;
-    
-    return { totalSupply, supplyByPost, supplyByDisability, totalRTIEntries };
+    return { totalSupply, supplyByPost, supplyByDisability, totalRTIEntries: allCandidateData.length };
 }
 
-/**
- * Populates the "Key Findings" card.
- */
+// --- Key Findings ---
 function renderKeyFindings() {
     try {
-        // 1. Calculate stats for ALL posts
-        const allRosterStats = processRosterData({ type: 'All' });
-
-        // 2. Calculate stats for TEACHING posts
-        const teachingRosterStats = processRosterData({ type: 'Teaching' });
-        const teachingCandidateStats = processCandidateData({ type: 'Teaching' });
-
-        // 3. Calculate stats for NON-TEACHING posts
-        const nonTeachingRosterStats = processRosterData({ type: 'NonTeaching' });
-        const nonTeachingCandidateStats = processCandidateData({ type: 'NonTeaching' });
-
-        // --- Finding 1: The Mismatch ---
-        const teachingOwed = teachingRosterStats.totalPostsOwed;
-        const teachingSupply = teachingCandidateStats.totalSupply;
-        const nonTeachingOwed = nonTeachingRosterStats.totalPostsOwed;
-        const nonTeachingSupply = nonTeachingCandidateStats.totalSupply;
+        const allRoster = processRosterData({ type: 'All' });
+        const teachRoster = processRosterData({ type: 'Teaching' });
+        const teachCand = processCandidateData({ type: 'Teaching' });
+        const nonTeachRoster = processRosterData({ type: 'NonTeaching' });
+        const nonTeachCand = processCandidateData({ type: 'NonTeaching' });
 
         document.getElementById('finding-1').innerHTML = 
-            `<strong>Qualification Mismatch:</strong> There is a critical shortage of <strong>Teaching</strong> candidates (<strong>${teachingSupply.toLocaleString()}</strong> available for <strong>${teachingOwed.toLocaleString()}</strong> owed posts), but a massive surplus of <strong>Non-Teaching</strong> candidates (<strong>${nonTeachingSupply.toLocaleString()}</strong> available for <strong>${nonTeachingOwed.toLocaleString()}</strong> posts).`;
+            `<strong>Qualification Mismatch:</strong> Teaching shortage (<strong>${teachCand.totalSupply.toLocaleString()}</strong> available for <strong>${Math.round(teachRoster.totalPostsOwed).toLocaleString()}</strong> owed), but Non-Teaching surplus (<strong>${nonTeachCand.totalSupply.toLocaleString()}</strong> available for <strong>${Math.round(nonTeachRoster.totalPostsOwed).toLocaleString()}</strong> owed).`;
             
-        // --- Finding 2: The Action Gap ---
-        const allOwed = allRosterStats.totalPostsOwed;
-        const allFilled = allRosterStats.totalManagerAppointed;
-        const allReported = allRosterStats.totalReported;
-        const unaccounted = allOwed - allFilled - allReported;
-
+        const unaccounted = allRoster.totalPostsOwed - allRoster.totalManagerAppointed - allRoster.totalReported;
         document.getElementById('finding-2').innerHTML = 
-            `<strong>Action Gap:</strong> Of the <strong>${allOwed.toLocaleString()}</strong> total posts owed, <strong>${allFilled.toLocaleString()}</strong> have been filled and <strong>${allReported.toLocaleString()}</strong> have been reported. This leaves <strong>${Math.round(unaccounted).toLocaleString()}</strong> posts unaccounted for by managements.`;
+            `<strong>Action Gap:</strong> Of <strong>${allRoster.totalPostsOwed.toLocaleString()}</strong> owed, <strong>${allRoster.totalManagerAppointed.toLocaleString()}</strong> filled and <strong>${allRoster.totalReported.toLocaleString()}</strong> reported. <strong>${Math.max(0, Math.round(unaccounted)).toLocaleString()}</strong> posts are unaccounted for.`;
 
-        // --- Finding 3: The Consequence ---
-        const allLimbo = allRosterStats.totalLimbo;
         document.getElementById('finding-3').innerHTML = 
-            `<strong>Administrative Logjam:</strong> <strong>${allLimbo.toLocaleString()}</strong> total appointments (for all candidates, PWD and non-PWD) are stuck in "Limbo" (Not Approved or Not Appointed) while the roster is pending.`;
+            `<strong>Administrative Logjam:</strong> <strong>${allRoster.totalLimbo.toLocaleString()}</strong> appointments are stuck in "Limbo" (Not Approved or Vacant).`;
 
     } catch (e) {
-        console.error("Error rendering key findings:", e);
+        console.error("Error rendering findings:", e);
         document.getElementById('finding-1').innerHTML = "Error loading findings.";
     }
 }
 
-
-// --- Chart Rendering Functions ---
-
-function destroyChart(name) {
-    if (chartInstances[name]) chartInstances[name].destroy();
-}
-
-// Config for all charts
+// --- Chart Rendering ---
+function destroyChart(name) { if (chartInstances[name]) chartInstances[name].destroy(); }
 Chart.defaults.color = '#ccc';
 Chart.defaults.borderColor = '#555';
 
@@ -369,10 +283,49 @@ function renderSupplyDemandChart(demand, supply) {
     chartInstances.supplyDemand = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Posts Owed (Demand)', 'Candidates (Supply)'],
+            labels: ['Posts Owed', 'Candidates'],
             datasets: [{ data: [demand, supply], backgroundColor: [CHART_COLORS.red, CHART_COLORS.blue] }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+}
+
+function renderActionOnOwedChart(dataObj) {
+    const ctx = document.getElementById('actionOnOwedChart').getContext('2d');
+    destroyChart('actionOnOwed');
+    chartInstances.actionOnOwed = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(dataObj),
+            datasets: [{ data: Object.values(dataObj), backgroundColor: [CHART_COLORS.green, CHART_COLORS.blue, CHART_COLORS.orange] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+}
+
+function renderCandidateSupplyChart(dataObj) {
+    const ctx = document.getElementById('candidatePostChart').getContext('2d');
+    destroyChart('candidateSupply');
+    chartInstances.candidateSupply = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(dataObj),
+            datasets: [{ data: Object.values(dataObj), backgroundColor: CHART_COLORS.blue }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+}
+
+function renderCandidateDisabilityChart(dataObj) {
+    const ctx = document.getElementById('candidateDisabilityChart').getContext('2d');
+    destroyChart('candidateDisability');
+    chartInstances.candidateDisability = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(dataObj),
+            datasets: [{ data: Object.values(dataObj), backgroundColor: [CHART_COLORS.blue, CHART_COLORS.orange, CHART_COLORS.green, CHART_COLORS.grey] }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
 }
 
@@ -389,83 +342,33 @@ function renderVerificationChart(verified, total) {
     });
 }
 
-function renderActionOnOwedChart(statusTotals) {
-    const ctx = document.getElementById('actionOnOwedChart').getContext('2d');
-    destroyChart('actionOnOwed');
-    chartInstances.actionOnOwed = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(statusTotals),
-            datasets: [{ data: Object.values(statusTotals), backgroundColor: [CHART_COLORS.green, CHART_COLORS.blue, CHART_COLORS.orange] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-    });
-}
-
-function renderCandidateSupplyChart(supplyByPost) {
-    const ctx = document.getElementById('candidatePostChart').getContext('2d');
-    destroyChart('candidateSupply');
-    chartInstances.candidateSupply = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: Object.keys(supplyByPost),
-            datasets: [{ data: Object.values(supplyByPost), backgroundColor: CHART_COLORS.blue }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-    });
-}
-
-function renderCandidateDisabilityChart(supplyByDisability) {
-    const ctx = document.getElementById('candidateDisabilityChart').getContext('2d');
-    destroyChart('candidateDisability');
-    chartInstances.candidateDisability = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(supplyByDisability),
-            datasets: [{ data: Object.values(supplyByDisability), backgroundColor: [CHART_COLORS.blue, CHART_COLORS.orange, CHART_COLORS.green, CHART_COLORS.grey] }]
-        },
-        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
-    });
-}
-
-// --- Interactive Search Filter Logic ---
-
+// --- Search Logic ---
 function populateSearchFilters() {
     const datalist = document.getElementById('global-search-list');
-    
-    allRosterData.forEach(entry => {
-        const name = `${entry.name_of_management} (Management)`;
-        datalist.appendChild(new Option(name, name));
-    });
-    
-    allCandidateData.forEach(entry => {
-        const name = `${entry.Office_Name} (Employment Office)`;
-        datalist.appendChild(new Option(name, name));
-    });
+    allRosterData.forEach(e => datalist.appendChild(new Option(`${e.name_of_management} (Management)`)));
+    allCandidateData.forEach(e => datalist.appendChild(new Option(`${e.Office_Name} (Employment Office)`)));
 }
 
 function handleGlobalSearch(e) {
-    const selectedName = e.target.value;
-    const resultsRow = document.getElementById('search-results-row');
+    const val = e.target.value;
     const mgmtContainer = document.getElementById('management-details-container');
     const candContainer = document.getElementById('candidate-details-container');
+    const resultsRow = document.getElementById('search-results-row');
 
-    let mgmtEntry = null;
-    let candEntry = null;
+    let mgmtEntry = null, candEntry = null;
 
-    if (selectedName.includes("(Management)")) {
-        const rawName = selectedName.replace(" (Management)", "");
-        mgmtEntry = allRosterData.find(m => m.name_of_management === rawName);
-    } else if (selectedName.includes("(Employment Office)")) {
-        const rawName = selectedName.replace(" (Employment Office)", "");
-        candEntry = allCandidateData.find(m => m.Office_Name === rawName);
+    if (val.includes("(Management)")) {
+        mgmtEntry = allRosterData.find(m => m.name_of_management === val.replace(" (Management)", ""));
+    } else if (val.includes("(Employment Office)")) {
+        candEntry = allCandidateData.find(m => m.Office_Name === val.replace(" (Employment Office)", ""));
     } else {
-        mgmtEntry = allRosterData.find(m => m.name_of_management === selectedName);
-        candEntry = allCandidateData.find(m => m.Office_Name === selectedName);
+        mgmtEntry = allRosterData.find(m => m.name_of_management === val);
+        candEntry = allCandidateData.find(m => m.Office_Name === val);
     }
 
     mgmtContainer.style.display = 'none';
     candContainer.style.display = 'none';
+    resultsRow.style.display = 'none';
 
     if (mgmtEntry) {
         renderManagementCard(mgmtEntry);
@@ -475,81 +378,55 @@ function handleGlobalSearch(e) {
         renderCandidateCard(candEntry);
         candContainer.style.display = 'block';
         resultsRow.style.display = 'flex';
-    } else if (!selectedName) {
-        resultsRow.style.display = 'none';
     }
 }
 
-/**
- * Populates the Management search result card
- * UPDATED with correct Category Names (Cat 1 is merged Primary)
- */
+// --- Render Card: Management ---
 function renderManagementCard(entry) {
-    let totalOwed = 0;
-    let totalFilled = 0;
-    let totalNotApproved = 0;
+    let tOwed = 0, tFilled = 0, tNotApproved = 0, tVacant = 0;
+    let html = `<thead class="table-light"><tr><th>Category</th><th>Owed</th><th>Filled</th><th>Backlog</th><th>Unreported</th><th>Vacant</th><th>Not Approved</th></tr></thead><tbody>`;
 
-    let tableHtml = `
-        <thead class="table-light">
-            <tr>
-                <th>Category</th>
-                <th title="Owed by Law">Owed</th>
-                <th title="Filled by Mgmt">Filled</th>
-                <th title="Owed - Filled">Backlog</th>
-                <th title="Backlog - Reported">Unreported</th>
-                <th title="Not Appointed">Vacant</th>
-                <th title="Not Approved">Not Approved</th>
-            </tr>
-        </thead>
-        <tbody>
-    `;
-
+    // Order: 1 (Primary), 2 (HST), 3 (NonTeaching), 4 (HSST Sr), 5 (HSST Jr), 6 (VHST Sr), 7 (VHST Jr)
     for (let i = 1; i <= 7; i++) {
         const catName = getCategoryName(i);
         const catKey = `category_${String(i).padStart(2, '0')}`;
-        let row = { appo_2017: 0, appo_after_2017: 0, manager_appo: 0, reported: 0, not_approved: 0, not_appointed: 0 };
+        let d = { appo_2017: 0, appo_after_2017: 0, manager_appo: 0, reported: 0, not_approved: 0, not_appointed: 0 };
         
-        if (entry[catKey] && entry[catKey].length > 0) {
-            row = entry[catKey][0];
-        }
+        if (entry[catKey] && entry[catKey].length > 0) d = entry[catKey][0];
 
-        const owed = (row.appo_2017 * 0.03) + (row.appo_after_2017 * 0.04);
-        const filled = row.manager_appo || 0;
-        const backlog = Math.max(0, owed - filled); 
-        const reported = row.reported || 0;
-        const unreported = Math.max(0, backlog - reported); 
-        const vacant = row.not_appointed || 0; 
-        const notApproved = row.not_approved || 0;
+        const owed = (d.appo_2017 * 0.03) + (d.appo_after_2017 * 0.04);
+        const filled = d.manager_appo || 0;
+        const backlog = Math.max(0, owed - filled);
+        const unreported = Math.max(0, backlog - (d.reported || 0));
+        const vacant = d.not_appointed || 0;
+        const notApproved = d.not_approved || 0;
 
-        totalOwed += owed;
-        totalFilled += filled;
-        totalNotApproved += notApproved;
-        
-        tableHtml += `
-            <tr>
-                <td>${catName}</td>
-                <td class="text-danger fw-bold">${owed.toFixed(2)}</td>
-                <td class="text-success">${filled}</td>
-                <td class="fw-bold">${backlog.toFixed(2)}</td>
-                <td class="text-warning">${unreported.toFixed(2)}</td>
-                <td class="text-muted">${vacant}</td>
-                <td class="text-danger">${notApproved}</td>
-            </tr>
-        `;
+        tOwed += owed; tFilled += filled; tNotApproved += notApproved; tVacant += vacant;
+
+        html += `<tr>
+            <td>${catName}</td>
+            <td class="text-danger fw-bold">${owed.toFixed(2)}</td>
+            <td class="text-success">${filled}</td>
+            <td class="fw-bold">${backlog.toFixed(2)}</td>
+            <td class="text-warning">${unreported.toFixed(2)}</td>
+            <td class="text-muted">${vacant}</td>
+            <td class="text-danger">${notApproved}</td>
+        </tr>`;
     }
-    tableHtml += '</tbody>';
+    html += '</tbody>';
 
     document.getElementById('management-name').textContent = entry.name_of_management;
     document.getElementById('mgmt-kpi-status').textContent = `${entry.verf_status[0]} / ${entry.verf_status[1]}`;
-    document.getElementById('mgmt-kpi-owed').textContent = totalOwed.toFixed(2);
-    document.getElementById('mgmt-kpi-filled').textContent = totalFilled;
-    document.getElementById('mgmt-kpi-not-approved').textContent = totalNotApproved;
-    document.getElementById('management-table').innerHTML = tableHtml;
+    document.getElementById('mgmt-kpi-owed').textContent = tOwed.toFixed(2);
+    document.getElementById('mgmt-kpi-filled').textContent = tFilled;
+    document.getElementById('mgmt-kpi-not-approved').textContent = tNotApproved;
+    document.getElementById('mgmt-kpi-vacant').textContent = tVacant;
+    document.getElementById('management-table').innerHTML = html;
 }
 
+// --- Render Card: Candidate ---
 function renderCandidateCard(entry) {
-    document.getElementById('office-name').textContent = `Office: ${entry.Office_Name}`;
-    
+    document.getElementById('office-name').textContent = entry.Office_Name;
     const ctx = document.getElementById('candidateOfficeChart').getContext('2d');
     destroyChart('candidate');
     
@@ -559,32 +436,16 @@ function renderCandidateCard(entry) {
         data: {
             labels: labels,
             datasets: [
-                { label: 'Visually Impaired', data: labels.map(l => entry[l].VisuallyImpaired), backgroundColor: CHART_COLORS.blue, },
-                { label: 'Hearing Impairment', data: labels.map(l => entry[l].HearingImpairment), backgroundColor: CHART_COLORS.orange, },
-                { label: 'LD', data: labels.map(l => entry[l].LD), backgroundColor: CHART_COLORS.green, },
-                { label: 'Others', data: labels.map(l => entry[l].Others), backgroundColor: CHART_COLORS.grey, },
+                { label: 'Visually Impaired', data: labels.map(l => entry[l].VisuallyImpaired), backgroundColor: CHART_COLORS.blue },
+                { label: 'Hearing Impairment', data: labels.map(l => entry[l].HearingImpairment), backgroundColor: CHART_COLORS.orange },
+                { label: 'LD', data: labels.map(l => entry[l].LD), backgroundColor: CHART_COLORS.green },
+                { label: 'Others', data: labels.map(l => entry[l].Others), backgroundColor: CHART_COLORS.grey },
             ]
         },
-        options: {
-            responsive: true, maintainAspectRatio: false,
-            scales: { x: { stacked: true }, y: { stacked: true } },
-            plugins: { tooltip: { mode: 'index' } }
-        }
+        options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
     });
 }
 
-/**
- * Helper to get correct category names based on the new mapping
- */
-function getCategoryName(index) {
-    const simpleNames = [
-        'Primary (Cat 1)',     // 1 - COMBINED
-        'High School (Cat 2)', // 2
-        'Non-Teaching',        // 3
-        'HSST Sr.',            // 4
-        'HSST Jr.',            // 5
-        'VHST Sr.',            // 6
-        'VHST Jr.'             // 7
-    ];
-    return simpleNames[index - 1] || `Cat ${index}`;
+function getCategoryName(i) {
+    return ['Primary (Cat 1)', 'High School (Cat 2)', 'Non-Teaching', 'HSST Sr.', 'HSST Jr.', 'VHST Sr.', 'VHST Jr.'][i-1] || `Cat ${i}`;
 }
