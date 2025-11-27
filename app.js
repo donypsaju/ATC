@@ -390,7 +390,7 @@ function handleAuditorSearch(e) {
     const selectedName = e.target.value;
     const collapseEl = document.getElementById('auditorTableCollapse');
 
-    // If search is empty, show ALL managements
+    // If search is empty, show ALL managements AGGREGATED
     if (!selectedName) {
         renderAllAuditorTables();
         new bootstrap.Collapse(collapseEl, { show: true });
@@ -408,23 +408,86 @@ function handleAuditorSearch(e) {
     }
 }
 
+/**
+ * Renders a SINGLE consolidated table summing up data from ALL managements.
+ */
 function renderAllAuditorTables() {
     const container = document.getElementById('auditor-table-body');
     let html = '';
     
-    document.getElementById('auditor-mgmt-name').textContent = "All Managements (Detailed Audit)";
+    document.getElementById('auditor-mgmt-name').textContent = "Consolidated Report (All Managements)";
     
+    // Initialize an object to hold the sums for each of the 7 categories
+    // Index 1 to 7 matches the category numbers
+    const sums = {};
+    for (let i = 1; i <= 7; i++) {
+        sums[i] = { 
+            appo_2017: 0, 
+            appo_after_2017: 0, 
+            manager_appo: 0, 
+            reported: 0, 
+            not_approved: 0, 
+            not_appointed: 0 
+        };
+    }
+
+    // Loop through EVERY management and aggregate their data
     allRosterData.forEach(entry => {
-        // Separator Row
+        for (let i = 1; i <= 7; i++) {
+            const catKey = `category_${String(i).padStart(2, '0')}`;
+            if (entry[catKey] && entry[catKey].length > 0) {
+                const d = entry[catKey][0];
+                sums[i].appo_2017 += d.appo_2017 || 0;
+                sums[i].appo_after_2017 += d.appo_after_2017 || 0;
+                sums[i].manager_appo += d.manager_appo || 0;
+                sums[i].reported += d.reported || 0;
+                sums[i].not_approved += d.not_approved || 0;
+                sums[i].not_appointed += d.not_appointed || 0;
+            }
+        }
+    });
+
+    // Now generate the table rows using the aggregated sums
+    // We treat 'sums' like a single management entry for the helper function
+    // But we need to adapt the helper slightly or just write the loop here.
+    // Writing the loop here is safer to avoid object structure mismatches.
+
+    for (let i = 1; i <= 7; i++) {
+        const catName = getCategoryName(i);
+        const d = sums[i];
+
+        const pct3 = d.appo_2017 * 0.03;
+        const pct4 = d.appo_after_2017 * 0.04;
+        const owed = pct3 + pct4;
+        const filled = d.manager_appo;
+        
+        const balance = Math.max(0, owed - filled);
+        const balanceRounded = Math.ceil(balance);
+        
+        const notApproved = d.not_approved;
+        const vacant = d.not_appointed;
+        const totalLimbo = notApproved + vacant;
+        const reported = d.reported;
+        const pendingAction = Math.max(0, balanceRounded - reported);
+
         html += `
-            <tr class="table-secondary">
-                <td colspan="13" class="text-start fw-bold text-dark border-top border-3 border-secondary">
-                    ${entry.name_of_management}
-                </td>
+            <tr>
+                <td>${catName}</td>
+                <td>${d.appo_2017.toLocaleString()}</td>
+                <td class="text-secondary">${pct3.toFixed(2)}</td>
+                <td>${d.appo_after_2017.toLocaleString()}</td>
+                <td class="text-secondary">${pct4.toFixed(2)}</td>
+                <td class="fw-bold text-danger bg-subtle-danger">${owed.toFixed(2)}</td>
+                <td class="fw-bold text-success bg-subtle-success">${filled.toLocaleString()}</td>
+                <td class="fw-bold text-white bg-dark border-secondary">${balanceRounded.toLocaleString()}</td>
+                <td>${notApproved.toLocaleString()}</td>
+                <td>${vacant.toLocaleString()}</td>
+                <td>${totalLimbo.toLocaleString()}</td>
+                <td>${reported.toLocaleString()}</td>
+                <td class="fw-bold text-warning">${pendingAction.toFixed(2)}</td>
             </tr>
         `;
-        html += generateAuditorRows(entry);
-    });
+    }
     
     container.innerHTML = html;
 }
