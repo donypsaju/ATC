@@ -84,6 +84,10 @@ async function loadAllData() {
         populateSearchFilters();
         updateDashboard(); 
         
+        // Initialize the Auditor table with ALL data by default
+        // Passing an empty value mimics an empty search box
+        handleAuditorSearch({ target: { value: '' } });
+
         // Show guide modal on first load
         const myModal = new bootstrap.Modal(document.getElementById('introModal'));
         myModal.show();
