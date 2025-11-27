@@ -15,8 +15,8 @@ const CHART_COLORS = {
 
 // --- Category Mappings ---
 const ROSTER_CATEGORY_MAP = {
-    'LPST': ['category_01'], // Maps to combined Primary
-    'UPST': ['category_01'], // Maps to combined Primary
+    'LPST': ['category_01'], 
+    'UPST': ['category_01'], 
     'Primary': ['category_01'],
     'HST': ['category_02'],
     'NonTeaching': ['category_03'],
@@ -44,9 +44,11 @@ CANDIDATE_CATEGORY_MAP.All = [...CANDIDATE_CATEGORY_MAP.Teaching, 'NonTeaching']
 
 // --- Initialization ---
 document.addEventListener("DOMContentLoaded", () => {
-    // Init Tooltips
+    // Init Tooltips & Popovers
     const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
     [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+    const popoverTriggerList = document.querySelectorAll('[data-bs-toggle="popover"]');
+    [...popoverTriggerList].map(popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl));
 
     fetchTimestamps();
     loadAllData();
@@ -112,8 +114,12 @@ function setupFilterListeners() {
     });
     
     document.getElementById('global-search').addEventListener('input', handleGlobalSearch);
+    
+    // AUDITOR Search Input Listener
+    document.getElementById('auditor-search').addEventListener('input', handleAuditorSearch);
 }
 
+// --- Dashboard Logic ---
 function updateDashboard() {
     const filter = getActiveFilter();
     
@@ -149,7 +155,7 @@ function updateDashboard() {
     renderActionOnOwedChart({
         'Filled by Mgmt': rosterStats.totalManagerAppointed,
         'Reported to Exchange': rosterStats.totalReported,
-        'Unaccounted': Math.max(0, unaccounted), // Logic remains: Max 0.
+        'Unaccounted': Math.max(0, unaccounted),
     });
     
     renderCandidateSupplyChart(candidateStats.supplyByPost);
@@ -239,9 +245,6 @@ function renderKeyFindings() {
         const nonTeachRoster = processRosterData({ type: 'NonTeaching' });
         const nonTeachCand = processCandidateData({ type: 'NonTeaching' });
 
-        // 1. The Illusion Check
-        let mismatchText = `Teaching shortage (<strong>${teachCand.totalSupply.toLocaleString()}</strong> available for <strong>${Math.round(teachRoster.totalPostsOwed).toLocaleString()}</strong> owed), but Non-Teaching surplus.`;
-        
         document.getElementById('finding-1').innerHTML = 
             `<strong>The Data Illusion:</strong> <strong>${nonTeachCand.totalSupply.toLocaleString()}</strong> of the available candidates are for Non-Teaching posts. <br>For <strong>Teaching</strong> posts specifically, there is a shortage of qualified candidates compared to the owed posts.`;
             
@@ -330,9 +333,22 @@ function renderVerificationChart(verified, total) {
 
 // --- Search Logic ---
 function populateSearchFilters() {
-    const datalist = document.getElementById('global-search-list');
-    allRosterData.forEach(e => datalist.appendChild(new Option(`${e.name_of_management} (Management)`)));
-    allCandidateData.forEach(e => datalist.appendChild(new Option(`${e.Office_Name} (Employment Office)`)));
+    const globalDatalist = document.getElementById('global-search-list');
+    const auditorDatalist = document.getElementById('auditor-search-list');
+    
+    allRosterData.forEach(e => {
+        const option1 = new Option(`${e.name_of_management} (Management)`);
+        globalDatalist.appendChild(option1);
+        
+        // Populate Auditor list only with Managements (since Employment Offices don't have this data)
+        const option2 = new Option(e.name_of_management);
+        auditorDatalist.appendChild(option2);
+    });
+    
+    allCandidateData.forEach(e => {
+        const option = new Option(`${e.Office_Name} (Employment Office)`);
+        globalDatalist.appendChild(option);
+    });
 }
 
 function handleGlobalSearch(e) {
@@ -367,6 +383,73 @@ function handleGlobalSearch(e) {
     }
 }
 
+// --- Auditor Search Handler ---
+function handleAuditorSearch(e) {
+    const selectedName = e.target.value;
+    const collapseEl = document.getElementById('auditorTableCollapse');
+    const mgmtEntry = allRosterData.find(m => m.name_of_management === selectedName);
+
+    if (mgmtEntry) {
+        renderAuditorTable(mgmtEntry);
+        // Show the collapse
+        new bootstrap.Collapse(collapseEl, { show: true });
+    } else {
+        // Hide if invalid selection
+        const bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
+        if (bsCollapse) bsCollapse.hide();
+    }
+}
+
+function renderAuditorTable(entry) {
+    document.getElementById('auditor-mgmt-name').textContent = entry.name_of_management;
+    const tbody = document.getElementById('auditor-table-body');
+    let html = '';
+
+    // Loop through 7 categories
+    for (let i = 1; i <= 7; i++) {
+        const catName = getCategoryName(i);
+        const catKey = `category_${String(i).padStart(2, '0')}`;
+        let d = { appo_2017: 0, appo_after_2017: 0, manager_appo: 0, reported: 0, not_approved: 0, not_appointed: 0 };
+        
+        if (entry[catKey] && entry[catKey].length > 0) d = entry[catKey][0];
+
+        // Detailed Calcs
+        const pct3 = (d.appo_2017 || 0) * 0.03;
+        const pct4 = (d.appo_after_2017 || 0) * 0.04;
+        const owed = pct3 + pct4;
+        const filled = d.manager_appo || 0;
+        const balance = owed - filled;
+        const backlog = Math.max(0, balance); // Cannot be negative for display
+        const notApproved = d.not_approved || 0;
+        const vacant = d.not_appointed || 0;
+        const totalLimbo = notApproved + vacant;
+        const reported = d.reported || 0;
+        // Current Backlog (Pending Action) logic: Balance - Reported
+        // If Reported > Balance, Pending is 0.
+        const pendingAction = Math.max(0, backlog - reported);
+
+        html += `
+            <tr>
+                <td>${catName}</td>
+                <td>${d.appo_2017}</td>
+                <td class="text-secondary">${pct3.toFixed(2)}</td>
+                <td>${d.appo_after_2017}</td>
+                <td class="text-secondary">${pct4.toFixed(2)}</td>
+                <td class="fw-bold text-danger bg-subtle-danger">${owed.toFixed(2)}</td>
+                <td class="fw-bold text-success bg-subtle-success">${filled}</td>
+                <td>${balance.toFixed(2)}</td>
+                <td>${notApproved}</td>
+                <td>${vacant}</td>
+                <td>${totalLimbo}</td>
+                <td>${reported}</td>
+                <td class="fw-bold text-warning">${pendingAction.toFixed(2)}</td>
+            </tr>
+        `;
+    }
+    tbody.innerHTML = html;
+}
+
+// --- Render Card: Management (Simplified Table) ---
 function renderManagementCard(entry) {
     let tOwed = 0, tFilled = 0, tNotApproved = 0, tVacant = 0;
     let html = `<thead class="table-light"><tr><th>Category</th><th>Owed</th><th>Filled</th><th>Backlog</th><th>Unreported</th><th>Vacant</th><th>Not Approved</th></tr></thead><tbody>`;
@@ -375,7 +458,6 @@ function renderManagementCard(entry) {
         const catName = getCategoryName(i);
         const catKey = `category_${String(i).padStart(2, '0')}`;
         let d = { appo_2017: 0, appo_after_2017: 0, manager_appo: 0, reported: 0, not_approved: 0, not_appointed: 0 };
-        
         if (entry[catKey] && entry[catKey].length > 0) d = entry[catKey][0];
 
         const owed = (d.appo_2017 * 0.03) + (d.appo_after_2017 * 0.04);
@@ -408,6 +490,7 @@ function renderManagementCard(entry) {
     document.getElementById('management-table').innerHTML = html;
 }
 
+// --- Render Card: Candidate ---
 function renderCandidateCard(entry) {
     document.getElementById('office-name').textContent = entry.Office_Name;
     const ctx = document.getElementById('candidateOfficeChart').getContext('2d');
