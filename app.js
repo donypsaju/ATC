@@ -85,7 +85,6 @@ async function loadAllData() {
         updateDashboard(); 
         
         // Initialize the Auditor table with ALL data by default
-        // Passing an empty value mimics an empty search box
         handleAuditorSearch({ target: { value: '' } });
 
         // Show guide modal on first load
@@ -344,7 +343,6 @@ function populateSearchFilters() {
         const option1 = new Option(`${e.name_of_management} (Management)`);
         globalDatalist.appendChild(option1);
         
-        // Populate Auditor list only with Managements (since Employment Offices don't have this data)
         const option2 = new Option(e.name_of_management);
         auditorDatalist.appendChild(option2);
     });
@@ -391,25 +389,56 @@ function handleGlobalSearch(e) {
 function handleAuditorSearch(e) {
     const selectedName = e.target.value;
     const collapseEl = document.getElementById('auditorTableCollapse');
+
+    // If search is empty, show ALL managements
+    if (!selectedName) {
+        renderAllAuditorTables();
+        new bootstrap.Collapse(collapseEl, { show: true });
+        return;
+    }
+
     const mgmtEntry = allRosterData.find(m => m.name_of_management === selectedName);
 
     if (mgmtEntry) {
         renderAuditorTable(mgmtEntry);
-        // Show the collapse
         new bootstrap.Collapse(collapseEl, { show: true });
     } else {
-        // Hide if invalid selection
         const bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
         if (bsCollapse) bsCollapse.hide();
     }
 }
 
+function renderAllAuditorTables() {
+    const container = document.getElementById('auditor-table-body');
+    let html = '';
+    
+    document.getElementById('auditor-mgmt-name').textContent = "All Managements (Detailed Audit)";
+    
+    allRosterData.forEach(entry => {
+        // Separator Row
+        html += `
+            <tr class="table-secondary">
+                <td colspan="13" class="text-start fw-bold text-dark border-top border-3 border-secondary">
+                    ${entry.name_of_management}
+                </td>
+            </tr>
+        `;
+        html += generateAuditorRows(entry);
+    });
+    
+    container.innerHTML = html;
+}
+
 function renderAuditorTable(entry) {
     document.getElementById('auditor-mgmt-name').textContent = entry.name_of_management;
-    const tbody = document.getElementById('auditor-table-body');
-    let html = '';
+    document.getElementById('auditor-table-body').innerHTML = generateAuditorRows(entry);
+}
 
-    // Loop through 7 categories
+/**
+ * Helper to generate the HTML rows for a single management entry
+ */
+function generateAuditorRows(entry) {
+    let html = '';
     for (let i = 1; i <= 7; i++) {
         const catName = getCategoryName(i);
         const catKey = `category_${String(i).padStart(2, '0')}`;
@@ -417,20 +446,21 @@ function renderAuditorTable(entry) {
         
         if (entry[catKey] && entry[catKey].length > 0) d = entry[catKey][0];
 
-        // Detailed Calcs
         const pct3 = (d.appo_2017 || 0) * 0.03;
         const pct4 = (d.appo_after_2017 || 0) * 0.04;
         const owed = pct3 + pct4;
         const filled = d.manager_appo || 0;
-        const balance = owed - filled;
-        const backlog = Math.max(0, balance); // Cannot be negative for display
+        
+        const balance = Math.max(0, owed - filled);
+        // ROUND UP LOGIC applied here
+        const balanceRounded = Math.ceil(balance);
+        
         const notApproved = d.not_approved || 0;
         const vacant = d.not_appointed || 0;
         const totalLimbo = notApproved + vacant;
         const reported = d.reported || 0;
-        // Current Backlog (Pending Action) logic: Balance - Reported
-        // If Reported > Balance, Pending is 0.
-        const pendingAction = Math.max(0, backlog - reported);
+        // Logic: Balance (Rounded) - Reported
+        const pendingAction = Math.max(0, balanceRounded - reported);
 
         html += `
             <tr>
@@ -441,7 +471,7 @@ function renderAuditorTable(entry) {
                 <td class="text-secondary">${pct4.toFixed(2)}</td>
                 <td class="fw-bold text-danger bg-subtle-danger">${owed.toFixed(2)}</td>
                 <td class="fw-bold text-success bg-subtle-success">${filled}</td>
-                <td>${balance.toFixed(2)}</td>
+                <td class="fw-bold text-white bg-dark border-secondary">${balanceRounded}</td>
                 <td>${notApproved}</td>
                 <td>${vacant}</td>
                 <td>${totalLimbo}</td>
@@ -450,7 +480,7 @@ function renderAuditorTable(entry) {
             </tr>
         `;
     }
-    tbody.innerHTML = html;
+    return html;
 }
 
 // --- Render Card: Management (Simplified Table) ---
@@ -466,7 +496,11 @@ function renderManagementCard(entry) {
 
         const owed = (d.appo_2017 * 0.03) + (d.appo_after_2017 * 0.04);
         const filled = d.manager_appo || 0;
-        const backlog = Math.max(0, owed - filled);
+        
+        const balance = Math.max(0, owed - filled);
+        // ROUND UP LOGIC applied here too for consistency
+        const backlog = Math.ceil(balance);
+        
         const unreported = Math.max(0, backlog - (d.reported || 0));
         const vacant = d.not_appointed || 0;
         const notApproved = d.not_approved || 0;
@@ -477,7 +511,7 @@ function renderManagementCard(entry) {
             <td>${catName}</td>
             <td class="text-danger fw-bold">${owed.toFixed(2)}</td>
             <td class="text-success">${filled}</td>
-            <td class="fw-bold">${backlog.toFixed(2)}</td>
+            <td class="fw-bold">${backlog}</td>
             <td class="text-warning">${unreported.toFixed(2)}</td>
             <td class="text-muted">${vacant}</td>
             <td class="text-danger">${notApproved}</td>
