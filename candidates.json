@@ -1214,5 +1214,43 @@
       "Others": 0,
       "Total": 1
     }
+  },
+  {
+    "Office_Name": "North Paravoor",
+    "NonTeaching": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    },
+    "LPST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 2
+    },
+    "UPST": {
+      "VisuallyImpaired": 6,
+      "HearingImpairment": 0,
+      "LD": 5,
+      "Others": 0,
+      "Total": 11
+    },
+    "HST": {
+      "VisuallyImpaired": 4,
+      "HearingImpairment": 0,
+      "LD": 4,
+      "Others": 0,
+      "Total": 8
+    },
+    "HSST": {
+      "VisuallyImpaired": 3,
+      "HearingImpairment": 0,
+      "LD": 4,
+      "Others": 0,
+      "Total": 7
+    }
   }
 ]
