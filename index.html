@@ -39,27 +39,37 @@
                 <i class="bi bi-bar-chart-line-fill me-2"></i>PWD Reservation
             </a>
             
-            <div class="d-flex gap-2 w-50 justify-content-center">
-                <div class="input-group">
-                    <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-search"></i></span>
-                    <input class="form-control bg-dark text-white border-secondary" type="search" id="global-search" list="global-search-list" placeholder="Search Management or Employment Office...">
+            <!-- Mobile Toggle Button -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- Search & Actions - Width fixed for mobile -->
+                <div class="d-flex flex-column flex-lg-row gap-2 w-100 w-lg-50 mx-auto mt-2 mt-lg-0 justify-content-center align-items-center">
+                    <div class="input-group w-100">
+                        <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-search"></i></span>
+                        <input class="form-control bg-dark text-white border-secondary" type="search" id="global-search" list="global-search-list" placeholder="Search Management or Employment Office...">
+                    </div>
+                    <datalist id="global-search-list"></datalist>
+                    
+                    <div class="d-flex gap-2 w-100 w-lg-auto">
+                        <!-- Info Button -->
+                        <button class="btn btn-outline-info text-nowrap flex-fill" data-bs-toggle="modal" data-bs-target="#projectInfoModal">
+                            <i class="bi bi-info-circle"></i> About
+                        </button>
+                        
+                        <!-- Contribute Button -->
+                        <a href="https://forms.gle/S8yEWBqR2XWNdtBj9" target="_blank" class="btn btn-outline-success text-nowrap flex-fill">
+                            <i class="bi bi-plus-circle"></i> Contribute
+                        </a>
+                    </div>
                 </div>
-                <datalist id="global-search-list"></datalist>
                 
-                <!-- Info Button -->
-                <button class="btn btn-outline-info text-nowrap" data-bs-toggle="modal" data-bs-target="#projectInfoModal">
-                    <i class="bi bi-info-circle"></i> About
-                </button>
-                
-                <!-- Contribute Button (LINK UPDATED) -->
-                <a href="https://forms.gle/S8yEWBqR2XWNdtBj9" target="_blank" class="btn btn-outline-success text-nowrap">
-                    <i class="bi bi-plus-circle"></i> Contribute Data
-                </a>
-            </div>
-            
-            <div class="d-none d-lg-flex flex-column text-end ms-3">
-                <span class="small text-muted" id="roster-update-time">Roster: Loading...</span>
-                <span class="small text-muted" id="candidate-update-time">Candidates: Loading...</span>
+                <div class="d-flex flex-column text-end ms-lg-3 mt-2 mt-lg-0">
+                    <span class="small text-muted" id="roster-update-time">Roster: Loading...</span>
+                    <span class="small text-muted" id="candidate-update-time">Candidates: Loading...</span>
+                </div>
             </div>
         </div>
     </nav>
@@ -71,7 +81,7 @@
             <div class="col-12" id="management-details-container" style="display: none;">
                 <div class="card h-100 border-primary">
                     <div class="card-header bg-primary bg-opacity-25 text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><span id="management-name"></span> <span class="badge bg-primary ms-2">Management</span></h5>
+                        <h5 class="mb-0 text-truncate me-2"><span id="management-name"></span> <span class="badge bg-primary ms-2">Management</span></h5>
                         <button type="button" class="btn-close btn-close-white" aria-label="Close" onclick="document.getElementById('global-search').value = ''; handleGlobalSearch({ target: { value: '' } });"></button>
                     </div>
                     <div class="card-body bg-dark">
@@ -108,7 +118,7 @@
             <div class="col-12" id="candidate-details-container" style="display: none;">
                 <div class="card h-100 border-info">
                     <div class="card-header bg-info bg-opacity-25 text-white d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><span id="office-name"></span> <span class="badge bg-info text-dark ms-2">Employment Office</span></h5>
+                        <h5 class="mb-0 text-truncate me-2"><span id="office-name"></span> <span class="badge bg-info text-dark ms-2">Employment Office</span></h5>
                         <button type="button" class="btn-close btn-close-white" aria-label="Close" onclick="document.getElementById('global-search').value = ''; handleGlobalSearch({ target: { value: '' } });"></button>
                     </div>
                     <div class="card-body bg-dark">
@@ -128,7 +138,7 @@
         <div class="row g-3 mb-3">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-body d-flex flex-wrap gap-3 align-items-center">
+                    <div class="card-body d-flex flex-wrap gap-3 align-items-center justify-content-center justify-content-md-start">
                         <div class="filter-group">
                             <div class="text-white-50 small mb-1 fw-bold"><i class="bi bi-funnel me-1"></i>Filter Data By</div>
                             <div class="btn-group" role="group" id="filter-main">
