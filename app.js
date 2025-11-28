@@ -53,7 +53,31 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchTimestamps();
     loadAllData();
     setupFilterListeners();
+    initVisitorCounter(); // Start the counter
 });
+
+// --- Visitor Counter ---
+async function initVisitorCounter() {
+    const counterElements = document.querySelectorAll('.visitor-count-display');
+    const namespace = 'pwd-dashboard-kerala';
+    const key = 'visits';
+    
+    try {
+        const response = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
+        if (!response.ok) throw new Error('Counter API failed');
+        const data = await response.json();
+        
+        counterElements.forEach(el => {
+            el.textContent = data.value.toLocaleString();
+        });
+        
+    } catch (e) {
+        console.warn("Visitor counter failed:", e);
+        counterElements.forEach(el => {
+            el.textContent = "--";
+        });
+    }
+}
 
 async function fetchTimestamps() {
     try {
@@ -90,7 +114,7 @@ async function loadAllData() {
         new bootstrap.Collapse(collapseEl, { show: true });
 
         // Show guide modal on first load
-        const myModal = new bootstrap.Modal(document.getElementById('projectInfoModal')); // UPDATED ID
+        const myModal = new bootstrap.Modal(document.getElementById('projectInfoModal'));
         myModal.show();
 
     } catch (error) {
@@ -120,10 +144,10 @@ function setupFilterListeners() {
     
     document.getElementById('global-search').addEventListener('input', handleGlobalSearch);
     
-    // AUDITOR Search Input Listeners (Input + Change for better UX)
+    // AUDITOR Search Input Listeners
     const auditorInput = document.getElementById('auditor-search');
     auditorInput.addEventListener('input', handleAuditorSearch);
-    auditorInput.addEventListener('change', handleAuditorSearch); // Catches selection from datalist
+    auditorInput.addEventListener('change', handleAuditorSearch); 
 }
 
 // --- Dashboard Logic ---
@@ -135,7 +159,6 @@ function updateDashboard() {
     
     const verificationRate = rosterStats.totalSchools > 0 ? ((rosterStats.totalVerified / rosterStats.totalSchools) * 100).toFixed(1) : 0;
     
-    // Update KPIs
     document.getElementById('kpi-total-owed').textContent = Math.round(rosterStats.totalPostsOwed).toLocaleString();
     document.getElementById('kpi-total-supply').textContent = candidateStats.totalSupply.toLocaleString();
     document.getElementById('kpi-total-filled').textContent = rosterStats.totalManagerAppointed.toLocaleString();
@@ -145,7 +168,6 @@ function updateDashboard() {
     document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
     document.getElementById('kpi-rti-entries').textContent = candidateStats.totalRTIEntries.toLocaleString();
 
-    // Update Supply Detail Text
     if (filter.type === 'All') {
         const nonTeachStats = processCandidateData({type: 'NonTeaching'});
         const nonTeachPct = Math.round((nonTeachStats.totalSupply / candidateStats.totalSupply) * 100);
@@ -154,11 +176,9 @@ function updateDashboard() {
         document.getElementById('kpi-supply-detail').textContent = filter.type;
     }
 
-    // Update Charts
     renderSupplyDemandChart(rosterStats.totalPostsOwed, candidateStats.totalSupply);
     renderVerificationChart(rosterStats.totalVerified, rosterStats.totalSchools);
     
-    // Logic update: Unaccounted is Net Owed - Reported
     const unaccounted = rosterStats.totalPostsOwed - rosterStats.totalReported;
     renderActionOnOwedChart({
         'Filled by Mgmt': rosterStats.totalManagerAppointed,
@@ -196,12 +216,8 @@ function processRosterData(filter) {
             if (entry[catKey] && entry[catKey].length > 0) {
                 const data = entry[catKey][0];
                 
-                // --- METRIC 1 CHANGE: Net Obligation Calculation ---
                 const grossOwed = ((data.appo_2017 || 0) * 0.03) + ((data.appo_after_2017 || 0) * 0.04);
                 const filled = data.manager_appo || 0;
-                
-                // Real Obligation = Gross - Filled
-                // We sum up the NET owed for the aggregate KPI
                 const netOwed = Math.max(0, grossOwed - filled);
                 
                 totalPostsOwed += netOwed;
@@ -262,7 +278,6 @@ function renderKeyFindings() {
         document.getElementById('finding-1').innerHTML = 
             `<strong>The Data Illusion:</strong> <strong>${nonTeachCand.totalSupply.toLocaleString()}</strong> of the available candidates are for Non-Teaching posts. <br>For <strong>Teaching</strong> posts specifically, there is a shortage of qualified candidates compared to the owed posts.`;
             
-        // Updated logic for Gap: Net Owed - Reported
         const unaccounted = allRoster.totalPostsOwed - allRoster.totalReported;
         document.getElementById('finding-2').innerHTML = 
             `<strong>Action Gap:</strong> Even after accounting for filled posts, <strong>${allRoster.totalPostsOwed.toLocaleString()}</strong> posts are still owed. Managements have reported <strong>${allRoster.totalReported.toLocaleString()}</strong> vacancies to exchanges.`;
@@ -397,7 +412,7 @@ function handleGlobalSearch(e) {
     }
 }
 
-// --- Auditor Search Handler (FIXED) ---
+// --- Auditor Search Handler ---
 function handleAuditorSearch(e) {
     const selectedName = e.target.value;
     const collapseEl = document.getElementById('auditorTableCollapse');
@@ -410,7 +425,6 @@ function handleAuditorSearch(e) {
         return;
     }
 
-    // Try to find exact match
     const mgmtEntry = allRosterData.find(m => m.name_of_management === selectedName);
 
     if (mgmtEntry) {
@@ -418,8 +432,6 @@ function handleAuditorSearch(e) {
         const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: false });
         bsCollapse.show();
     } else {
-        // Fallback: If partial/invalid search, show ALL (better than hiding everything)
-        // or you could filter the list. For now, defaulting to "All" is safest UI.
         renderAllAuditorTables();
         const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: false });
         bsCollapse.show();
@@ -432,7 +444,7 @@ function renderAllAuditorTables() {
     
     document.getElementById('auditor-mgmt-name').textContent = "Consolidated Report (All Managements)";
     
-    // Initialize an object to hold the sums for each of the 7 categories
+    // Initialize aggregated sums
     const sums = {};
     for (let i = 1; i <= 7; i++) {
         sums[i] = { 
@@ -445,7 +457,7 @@ function renderAllAuditorTables() {
         };
     }
 
-    // Aggregate data
+    // Aggregate
     allRosterData.forEach(entry => {
         for (let i = 1; i <= 7; i++) {
             const catKey = `category_${String(i).padStart(2, '0')}`;
@@ -461,7 +473,7 @@ function renderAllAuditorTables() {
         }
     });
 
-    // Generate table rows
+    // Render aggregated rows
     for (let i = 1; i <= 7; i++) {
         const catName = getCategoryName(i);
         const d = sums[i];
@@ -471,8 +483,6 @@ function renderAllAuditorTables() {
         const grossOwed = pct3 + pct4;
         const filled = d.manager_appo;
         
-        // NET OBLIGATION LOGIC applied to table too
-        // Net Owed = Gross - Filled
         const netOwed = Math.max(0, grossOwed - filled);
         const netOwedRounded = Math.ceil(netOwed);
         
@@ -522,7 +532,6 @@ function generateAuditorRows(entry) {
         const grossOwed = pct3 + pct4;
         const filled = d.manager_appo || 0;
         
-        // NET OBLIGATION LOGIC
         const netOwed = Math.max(0, grossOwed - filled);
         const netOwedRounded = Math.ceil(netOwed);
         
