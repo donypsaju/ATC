@@ -85,7 +85,9 @@ async function loadAllData() {
         updateDashboard(); 
         
         // Initialize the Auditor table with ALL data by default
-        handleAuditorSearch({ target: { value: '' } });
+        renderAllAuditorTables();
+        const collapseEl = document.getElementById('auditorTableCollapse');
+        new bootstrap.Collapse(collapseEl, { show: true });
 
         // Show guide modal on first load
         const myModal = new bootstrap.Modal(document.getElementById('introModal'));
@@ -118,8 +120,10 @@ function setupFilterListeners() {
     
     document.getElementById('global-search').addEventListener('input', handleGlobalSearch);
     
-    // AUDITOR Search Input Listener
-    document.getElementById('auditor-search').addEventListener('input', handleAuditorSearch);
+    // AUDITOR Search Input Listeners (Input + Change for better UX)
+    const auditorInput = document.getElementById('auditor-search');
+    auditorInput.addEventListener('input', handleAuditorSearch);
+    auditorInput.addEventListener('change', handleAuditorSearch); // Catches selection from datalist
 }
 
 // --- Dashboard Logic ---
@@ -154,7 +158,8 @@ function updateDashboard() {
     renderSupplyDemandChart(rosterStats.totalPostsOwed, candidateStats.totalSupply);
     renderVerificationChart(rosterStats.totalVerified, rosterStats.totalSchools);
     
-    const unaccounted = rosterStats.totalPostsOwed - rosterStats.totalManagerAppointed - rosterStats.totalReported;
+    // Logic update: Unaccounted is Net Owed - Reported
+    const unaccounted = rosterStats.totalPostsOwed - rosterStats.totalReported;
     renderActionOnOwedChart({
         'Filled by Mgmt': rosterStats.totalManagerAppointed,
         'Reported to Exchange': rosterStats.totalReported,
@@ -191,10 +196,16 @@ function processRosterData(filter) {
             if (entry[catKey] && entry[catKey].length > 0) {
                 const data = entry[catKey][0];
                 
-                const owed = ((data.appo_2017 || 0) * 0.03) + ((data.appo_after_2017 || 0) * 0.04);
-                totalPostsOwed += owed;
-
-                totalManagerAppointed += data.manager_appo || 0;
+                // --- METRIC 1 CHANGE: Net Obligation Calculation ---
+                const grossOwed = ((data.appo_2017 || 0) * 0.03) + ((data.appo_after_2017 || 0) * 0.04);
+                const filled = data.manager_appo || 0;
+                
+                // Real Obligation = Gross - Filled
+                // We sum up the NET owed for the aggregate KPI
+                const netOwed = Math.max(0, grossOwed - filled);
+                
+                totalPostsOwed += netOwed;
+                totalManagerAppointed += filled;
                 totalReported += data.reported || 0;
                 
                 const notApproved = data.not_approved || 0;
@@ -251,9 +262,10 @@ function renderKeyFindings() {
         document.getElementById('finding-1').innerHTML = 
             `<strong>The Data Illusion:</strong> <strong>${nonTeachCand.totalSupply.toLocaleString()}</strong> of the available candidates are for Non-Teaching posts. <br>For <strong>Teaching</strong> posts specifically, there is a shortage of qualified candidates compared to the owed posts.`;
             
-        const unaccounted = allRoster.totalPostsOwed - allRoster.totalManagerAppointed - allRoster.totalReported;
+        // Updated logic for Gap: Net Owed - Reported
+        const unaccounted = allRoster.totalPostsOwed - allRoster.totalReported;
         document.getElementById('finding-2').innerHTML = 
-            `<strong>Action Gap:</strong> Of <strong>${allRoster.totalPostsOwed.toLocaleString()}</strong> owed, <strong>${allRoster.totalManagerAppointed.toLocaleString()}</strong> filled and <strong>${allRoster.totalReported.toLocaleString()}</strong> reported. <strong>${Math.max(0, Math.round(unaccounted)).toLocaleString()}</strong> posts are currently unaccounted for.`;
+            `<strong>Action Gap:</strong> Even after accounting for filled posts, <strong>${allRoster.totalPostsOwed.toLocaleString()}</strong> posts are still owed. Managements have reported <strong>${allRoster.totalReported.toLocaleString()}</strong> vacancies to exchanges.`;
 
         document.getElementById('finding-3').innerHTML = 
             `<strong>Administrative Logjam:</strong> <strong>${allRoster.totalLimbo.toLocaleString()}</strong> total appointments are stuck in "Limbo" (Not Approved or Vacant).`;
@@ -275,7 +287,7 @@ function renderSupplyDemandChart(demand, supply) {
     chartInstances.supplyDemand = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Posts Owed', 'Candidates'],
+            labels: ['Posts Owed (Net)', 'Candidates'],
             datasets: [{ data: [demand, supply], backgroundColor: [CHART_COLORS.red, CHART_COLORS.blue] }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
@@ -385,32 +397,35 @@ function handleGlobalSearch(e) {
     }
 }
 
-// --- Auditor Search Handler ---
+// --- Auditor Search Handler (FIXED) ---
 function handleAuditorSearch(e) {
     const selectedName = e.target.value;
     const collapseEl = document.getElementById('auditorTableCollapse');
 
-    // If search is empty, show ALL managements AGGREGATED
-    if (!selectedName) {
+    // FIX: Show all tables if search is empty or cleared
+    if (!selectedName || selectedName.trim() === "") {
         renderAllAuditorTables();
-        new bootstrap.Collapse(collapseEl, { show: true });
+        const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: false });
+        bsCollapse.show();
         return;
     }
 
+    // Try to find exact match
     const mgmtEntry = allRosterData.find(m => m.name_of_management === selectedName);
 
     if (mgmtEntry) {
         renderAuditorTable(mgmtEntry);
-        new bootstrap.Collapse(collapseEl, { show: true });
+        const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: false });
+        bsCollapse.show();
     } else {
-        const bsCollapse = bootstrap.Collapse.getInstance(collapseEl);
-        if (bsCollapse) bsCollapse.hide();
+        // Fallback: If partial/invalid search, show ALL (better than hiding everything)
+        // or you could filter the list. For now, defaulting to "All" is safest UI.
+        renderAllAuditorTables();
+        const bsCollapse = new bootstrap.Collapse(collapseEl, { toggle: false });
+        bsCollapse.show();
     }
 }
 
-/**
- * Renders a SINGLE consolidated table summing up data from ALL managements.
- */
 function renderAllAuditorTables() {
     const container = document.getElementById('auditor-table-body');
     let html = '';
@@ -418,7 +433,6 @@ function renderAllAuditorTables() {
     document.getElementById('auditor-mgmt-name').textContent = "Consolidated Report (All Managements)";
     
     // Initialize an object to hold the sums for each of the 7 categories
-    // Index 1 to 7 matches the category numbers
     const sums = {};
     for (let i = 1; i <= 7; i++) {
         sums[i] = { 
@@ -431,7 +445,7 @@ function renderAllAuditorTables() {
         };
     }
 
-    // Loop through EVERY management and aggregate their data
+    // Aggregate data
     allRosterData.forEach(entry => {
         for (let i = 1; i <= 7; i++) {
             const catKey = `category_${String(i).padStart(2, '0')}`;
@@ -447,28 +461,26 @@ function renderAllAuditorTables() {
         }
     });
 
-    // Now generate the table rows using the aggregated sums
-    // We treat 'sums' like a single management entry for the helper function
-    // But we need to adapt the helper slightly or just write the loop here.
-    // Writing the loop here is safer to avoid object structure mismatches.
-
+    // Generate table rows
     for (let i = 1; i <= 7; i++) {
         const catName = getCategoryName(i);
         const d = sums[i];
 
         const pct3 = d.appo_2017 * 0.03;
         const pct4 = d.appo_after_2017 * 0.04;
-        const owed = pct3 + pct4;
+        const grossOwed = pct3 + pct4;
         const filled = d.manager_appo;
         
-        const balance = Math.max(0, owed - filled);
-        const balanceRounded = Math.ceil(balance);
+        // NET OBLIGATION LOGIC applied to table too
+        // Net Owed = Gross - Filled
+        const netOwed = Math.max(0, grossOwed - filled);
+        const netOwedRounded = Math.ceil(netOwed);
         
         const notApproved = d.not_approved;
         const vacant = d.not_appointed;
         const totalLimbo = notApproved + vacant;
         const reported = d.reported;
-        const pendingAction = Math.max(0, balanceRounded - reported);
+        const pendingAction = Math.max(0, netOwedRounded - reported);
 
         html += `
             <tr>
@@ -477,9 +489,9 @@ function renderAllAuditorTables() {
                 <td class="text-secondary">${pct3.toFixed(2)}</td>
                 <td>${d.appo_after_2017.toLocaleString()}</td>
                 <td class="text-secondary">${pct4.toFixed(2)}</td>
-                <td class="fw-bold text-danger bg-subtle-danger">${owed.toFixed(2)}</td>
+                <td class="fw-bold text-danger bg-subtle-danger">${netOwed.toFixed(2)}</td>
                 <td class="fw-bold text-success bg-subtle-success">${filled.toLocaleString()}</td>
-                <td class="fw-bold text-white bg-dark border-secondary">${balanceRounded.toLocaleString()}</td>
+                <td class="fw-bold text-white bg-dark border-secondary">${netOwedRounded.toLocaleString()}</td>
                 <td>${notApproved.toLocaleString()}</td>
                 <td>${vacant.toLocaleString()}</td>
                 <td>${totalLimbo.toLocaleString()}</td>
@@ -488,7 +500,6 @@ function renderAllAuditorTables() {
             </tr>
         `;
     }
-    
     container.innerHTML = html;
 }
 
@@ -497,9 +508,6 @@ function renderAuditorTable(entry) {
     document.getElementById('auditor-table-body').innerHTML = generateAuditorRows(entry);
 }
 
-/**
- * Helper to generate the HTML rows for a single management entry
- */
 function generateAuditorRows(entry) {
     let html = '';
     for (let i = 1; i <= 7; i++) {
@@ -511,19 +519,18 @@ function generateAuditorRows(entry) {
 
         const pct3 = (d.appo_2017 || 0) * 0.03;
         const pct4 = (d.appo_after_2017 || 0) * 0.04;
-        const owed = pct3 + pct4;
+        const grossOwed = pct3 + pct4;
         const filled = d.manager_appo || 0;
         
-        const balance = Math.max(0, owed - filled);
-        // ROUND UP LOGIC applied here
-        const balanceRounded = Math.ceil(balance);
+        // NET OBLIGATION LOGIC
+        const netOwed = Math.max(0, grossOwed - filled);
+        const netOwedRounded = Math.ceil(netOwed);
         
         const notApproved = d.not_approved || 0;
         const vacant = d.not_appointed || 0;
         const totalLimbo = notApproved + vacant;
         const reported = d.reported || 0;
-        // Logic: Balance (Rounded) - Reported
-        const pendingAction = Math.max(0, balanceRounded - reported);
+        const pendingAction = Math.max(0, netOwedRounded - reported);
 
         html += `
             <tr>
@@ -532,9 +539,9 @@ function generateAuditorRows(entry) {
                 <td class="text-secondary">${pct3.toFixed(2)}</td>
                 <td>${d.appo_after_2017}</td>
                 <td class="text-secondary">${pct4.toFixed(2)}</td>
-                <td class="fw-bold text-danger bg-subtle-danger">${owed.toFixed(2)}</td>
+                <td class="fw-bold text-danger bg-subtle-danger">${netOwed.toFixed(2)}</td>
                 <td class="fw-bold text-success bg-subtle-success">${filled}</td>
-                <td class="fw-bold text-white bg-dark border-secondary">${balanceRounded}</td>
+                <td class="fw-bold text-white bg-dark border-secondary">${netOwedRounded}</td>
                 <td>${notApproved}</td>
                 <td>${vacant}</td>
                 <td>${totalLimbo}</td>
@@ -546,10 +553,9 @@ function generateAuditorRows(entry) {
     return html;
 }
 
-// --- Render Card: Management (Simplified Table) ---
 function renderManagementCard(entry) {
     let tOwed = 0, tFilled = 0, tNotApproved = 0, tVacant = 0;
-    let html = `<thead class="table-light"><tr><th>Category</th><th>Owed</th><th>Filled</th><th>Backlog</th><th>Unreported</th><th>Vacant</th><th>Not Approved</th></tr></thead><tbody>`;
+    let html = `<thead class="table-light"><tr><th>Category</th><th>Owed (Net)</th><th>Filled</th><th>Backlog</th><th>Unreported</th><th>Vacant</th><th>Not Appr</th></tr></thead><tbody>`;
 
     for (let i = 1; i <= 7; i++) {
         const catName = getCategoryName(i);
@@ -557,22 +563,19 @@ function renderManagementCard(entry) {
         let d = { appo_2017: 0, appo_after_2017: 0, manager_appo: 0, reported: 0, not_approved: 0, not_appointed: 0 };
         if (entry[catKey] && entry[catKey].length > 0) d = entry[catKey][0];
 
-        const owed = (d.appo_2017 * 0.03) + (d.appo_after_2017 * 0.04);
+        const grossOwed = (d.appo_2017 * 0.03) + (d.appo_after_2017 * 0.04);
         const filled = d.manager_appo || 0;
-        
-        const balance = Math.max(0, owed - filled);
-        // ROUND UP LOGIC applied here too for consistency
-        const backlog = Math.ceil(balance);
-        
+        const netOwed = Math.max(0, grossOwed - filled);
+        const backlog = Math.ceil(netOwed);
         const unreported = Math.max(0, backlog - (d.reported || 0));
         const vacant = d.not_appointed || 0;
         const notApproved = d.not_approved || 0;
 
-        tOwed += owed; tFilled += filled; tNotApproved += notApproved; tVacant += vacant;
+        tOwed += netOwed; tFilled += filled; tNotApproved += notApproved; tVacant += vacant;
 
         html += `<tr>
             <td>${catName}</td>
-            <td class="text-danger fw-bold">${owed.toFixed(2)}</td>
+            <td class="text-danger fw-bold">${netOwed.toFixed(2)}</td>
             <td class="text-success">${filled}</td>
             <td class="fw-bold">${backlog}</td>
             <td class="text-warning">${unreported.toFixed(2)}</td>
@@ -591,7 +594,6 @@ function renderManagementCard(entry) {
     document.getElementById('management-table').innerHTML = html;
 }
 
-// --- Render Card: Candidate ---
 function renderCandidateCard(entry) {
     document.getElementById('office-name').textContent = entry.Office_Name;
     const ctx = document.getElementById('candidateOfficeChart').getContext('2d');
