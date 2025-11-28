@@ -39,19 +39,25 @@
                 <i class="bi bi-bar-chart-line-fill me-2"></i>PWD Reservation
             </a>
             
-            <div class="d-flex gap-2 w-50">
+            <div class="d-flex gap-2 w-50 justify-content-center">
                 <div class="input-group">
                     <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-search"></i></span>
                     <input class="form-control bg-dark text-white border-secondary" type="search" id="global-search" list="global-search-list" placeholder="Search Management or Employment Office...">
                 </div>
                 <datalist id="global-search-list"></datalist>
                 
-                <button class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#introModal">
-                    <i class="bi bi-info-circle"></i> Data Guide
+                <!-- Info Button -->
+                <button class="btn btn-outline-info text-nowrap" data-bs-toggle="modal" data-bs-target="#projectInfoModal">
+                    <i class="bi bi-info-circle"></i> About
                 </button>
+                
+                <!-- Contribute Button (LINK UPDATED) -->
+                <a href="https://forms.gle/S8yEWBqR2XWNdtBj9" target="_blank" class="btn btn-outline-success text-nowrap">
+                    <i class="bi bi-plus-circle"></i> Contribute Data
+                </a>
             </div>
             
-            <div class="d-none d-lg-flex flex-column text-end">
+            <div class="d-none d-lg-flex flex-column text-end ms-3">
                 <span class="small text-muted" id="roster-update-time">Roster: Loading...</span>
                 <span class="small text-muted" id="candidate-update-time">Candidates: Loading...</span>
             </div>
@@ -311,7 +317,7 @@
             </div>
         </div>
 
-        <!-- 5. Detailed Auditor Section (New) -->
+        <!-- 5. Detailed Auditor Section -->
         <div class="row mt-5">
             <div class="col-12">
                 <div class="card border-secondary">
@@ -324,7 +330,6 @@
                             <span class="input-group-text bg-secondary border-secondary text-white"><i class="bi bi-search"></i></span>
                             <input class="form-control bg-dark text-white border-secondary" type="text" id="auditor-search" list="auditor-search-list" placeholder="Search Management to Audit...">
                             
-                            <!-- ADDED RESET BUTTON -->
                             <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('auditor-search').value = ''; handleAuditorSearch({ target: { value: '' } });">
                                 <i class="bi bi-x-lg"></i> Clear
                             </button>
@@ -376,30 +381,48 @@
         </div>
     </footer>
 
-    <!-- 5. MODAL (Data Guide) -->
-    <div class="modal fade" id="introModal" tabindex="-1" aria-hidden="true">
+    <!-- 5. ABOUT & DATA GUIDE MODAL -->
+    <div class="modal fade" id="projectInfoModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content bg-dark text-white border-secondary">
                 <div class="modal-header border-secondary">
-                    <h5 class="modal-title text-warning"><i class="bi bi-exclamation-triangle-fill me-2"></i>Interpreting the Data</h5>
+                    <h5 class="modal-title text-warning"><i class="bi bi-info-circle-fill me-2"></i>About This Project</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <p>This dashboard is a volunteer initiative to bring transparency to the implementation of the PWD Reservation Act in Kerala's aided schools. Our goal is to highlight the gap between legal obligations and the current reality.</p>
+                    
                     <div class="alert alert-info bg-opacity-10 border-info text-white">
-                        <strong><i class="bi bi-info-circle-fill"></i> The "Surplus" Illusion</strong><br>
-                        While the "Available Candidates" number may look high, this includes <strong>Non-Teaching</strong> candidates (Peon, Sweeper, etc.) who cannot apply for Teaching posts.
-                        <hr>
-                        When you filter for <strong>Teaching</strong>, you will likely see a shortage of qualified PWD candidates compared to the posts owed.
+                        <strong><i class="bi bi-exclamation-circle-fill"></i> Data Limitations & Authenticity</strong><br>
+                        <ul>
+                            <li><strong>Roster Data (Demand):</strong> Scraped from the public <a href="https://samanwaya.kite.kerala.gov.in" target="_blank" class="text-info">Samanwaya Portal</a>. It represents the official government data as currently verified.</li>
+                            <li><strong>Candidate Data (Supply):</strong> Sourced from RTI (Right to Information) replies from various Employment Exchanges.</li>
+                            <li><strong>Work in Progress:</strong> This data is not yet exhaustive. RTI data is manually entered, and Roster data is updated weekly. We rely on the community to help us fill the gaps.</li>
+                        </ul>
                     </div>
-                    <h6>Definitions:</h6>
+
+                    <h6 class="text-warning mt-4"><i class="bi bi-lightbulb-fill"></i> Interpreting the Data</h6>
+                    <div class="p-3 bg-secondary bg-opacity-25 rounded border border-secondary mb-3">
+                        <strong>The "Surplus" Illusion:</strong><br>
+                        A high number of "Available Candidates" often includes thousands of Non-Teaching applicants (Peons, Sweepers). <br>
+                        <em>Always use the <strong>"Teaching"</strong> filter to see the true shortage of qualified teachers vs. posts owed.</em>
+                    </div>
+
+                    <h6>Key Definitions:</h6>
                     <ul class="small text-white-50">
                         <li><strong>Owed (Demand):</strong> Statutory requirement (3% of pre-2017 + 4% of post-2017 appointments).</li>
                         <li><strong>Limbo:</strong> Posts that are either vacant or not approved by the government.</li>
-                        <li><strong>Unaccounted:</strong> Owed posts that have not been filled AND not been reported to the Exchange. (If 0, it means Management has taken action on all owed posts).</li>
+                        <li><strong>Unaccounted:</strong> Owed posts that have not been filled AND not been reported to the Exchange.</li>
                     </ul>
+                    
+                    <hr class="border-secondary">
+                    <p class="mb-0 text-center">
+                        Found an error? Have new RTI data? <br>
+                        <a href="https://forms.gle/S8yEWBqR2XWNdtBj9" target="_blank" class="btn btn-success mt-2"><i class="bi bi-pencil-square"></i> Submit Correction / New Data</a>
+                    </p>
                 </div>
                 <div class="modal-footer border-secondary">
-                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Understood</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>

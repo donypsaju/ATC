@@ -90,7 +90,7 @@ async function loadAllData() {
         new bootstrap.Collapse(collapseEl, { show: true });
 
         // Show guide modal on first load
-        const myModal = new bootstrap.Modal(document.getElementById('introModal'));
+        const myModal = new bootstrap.Modal(document.getElementById('projectInfoModal')); // UPDATED ID
         myModal.show();
 
     } catch (error) {
