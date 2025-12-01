@@ -1594,5 +1594,233 @@
       "Others": 0,
       "Total": 0
     }
+  },
+  {
+    "Office_Name": "Kozhikode-2",
+    "NonTeaching": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    },
+    "LPST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    },
+    "UPST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    },
+    "HST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    },
+    "HSST": {
+      "VisuallyImpaired": 142,
+      "HearingImpairment": 32,
+      "LD": 174,
+      "Others": 0,
+      "Total": 348
+    }
+  },
+  {
+    "Office_Name": "Malappuram",
+    "NonTeaching": {
+      "VisuallyImpaired": 168,
+      "HearingImpairment": 288,
+      "LD": 660,
+      "Others": 0,
+      "Total": 1116
+    },
+    "LPST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 12,
+      "Others": 0,
+      "Total": 13
+    },
+    "UPST": {
+      "VisuallyImpaired": 17,
+      "HearingImpairment": 2,
+      "LD": 40,
+      "Others": 0,
+      "Total": 59
+    },
+    "HST": {
+      "VisuallyImpaired": 11,
+      "HearingImpairment": 2,
+      "LD": 18,
+      "Others": 0,
+      "Total": 31
+    },
+    "HSST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": "Adimali",
+    "NonTeaching": {
+      "VisuallyImpaired": 66,
+      "HearingImpairment": 56,
+      "LD": 129,
+      "Others": 0,
+      "Total": 251
+    },
+    "LPST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 1,
+      "LD": 1,
+      "Others": 0,
+      "Total": 3
+    },
+    "UPST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 1,
+      "LD": 1,
+      "Others": 0,
+      "Total": 4
+    },
+    "HST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 0,
+      "LD": 1,
+      "Others": 0,
+      "Total": 3
+    },
+    "HSST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": "Kuttanad",
+    "NonTeaching": {
+      "VisuallyImpaired": 40,
+      "HearingImpairment": 96,
+      "LD": 260,
+      "Others": 171,
+      "Total": 567
+    },
+    "LPST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 2,
+      "Others": 1,
+      "Total": 3
+    },
+    "UPST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 3,
+      "Others": 1,
+      "Total": 5
+    },
+    "HST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    },
+    "HSST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 1,
+      "Others": 0,
+      "Total": 2
+    }
+  },
+  {
+    "Office_Name": "Peerumedu",
+    "NonTeaching": {
+      "VisuallyImpaired": 35,
+      "HearingImpairment": 52,
+      "LD": 155,
+      "Others": 27,
+      "Total": 269
+    },
+    "LPST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 0,
+      "LD": 1,
+      "Others": 0,
+      "Total": 3
+    },
+    "UPST": {
+      "VisuallyImpaired": 3,
+      "HearingImpairment": 1,
+      "LD": 2,
+      "Others": 1,
+      "Total": 7
+    },
+    "HST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 1,
+      "LD": 1,
+      "Others": 1,
+      "Total": 5
+    },
+    "HSST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 1
+    }
+  },
+  {
+    "Office_Name": "Alathoor",
+    "NonTeaching": {
+      "VisuallyImpaired": 65,
+      "HearingImpairment": 123,
+      "LD": 371,
+      "Others": 0,
+      "Total": 559
+    },
+    "LPST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    },
+    "UPST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 3,
+      "Others": 0,
+      "Total": 4
+    },
+    "HST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 1,
+      "Others": 0,
+      "Total": 1
+    },
+    "HSST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    }
   }
 ]
