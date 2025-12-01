@@ -55,7 +55,7 @@
 
     <!-- 2. SEARCH RESULTS (Only triggered by Auditor Search now) -->
     <div class="container-fluid mb-4 mt-3" id="search-results-row" style="display: none;">
-        <!-- Container preserved for future expansion if needed -->
+        <!-- Reserved for future use -->
     </div>
 
     <!-- 3. MAIN DASHBOARD -->
@@ -155,6 +155,32 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-success" style="background: linear-gradient(45deg, #0f3d20, #212529);">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="text-success small fw-bold">SUCCESSFULLY FILLED</div>
+                            <i class="bi bi-check-circle text-white-50" data-bs-toggle="tooltip" title="Posts where a PWD candidate has been appointed by management."></i>
+                        </div>
+                        <div class="fs-1 fw-bold text-white mt-2" id="kpi-total-filled">--</div>
+                        <div class="small text-white-50 mt-1">Direct appointments by Management</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 border-info">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between">
+                            <div class="text-info small fw-bold">REPORTED TO GOVT</div>
+                            <i class="bi bi-arrow-up-right-circle text-white-50" data-bs-toggle="tooltip" title="Vacancies reported to the Employment Exchange for recruitment."></i>
+                        </div>
+                        <div class="fs-1 fw-bold text-white mt-2" id="kpi-total-reported">--</div>
+                        <div class="small text-white-50 mt-1">In recruitment pipeline</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 2 -->
+            <div class="col-lg-3 col-md-6">
                 <div class="card h-100 border-warning">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
@@ -167,29 +193,16 @@
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
-                <div class="card h-100 border-success" style="background: linear-gradient(45deg, #0f3d20, #212529);">
+                <div class="card h-100">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div class="text-success small fw-bold">SUCCESSFULLY FILLED</div>
-                            <i class="bi bi-check-circle text-white-50" data-bs-toggle="tooltip" title="Posts where a PWD candidate has been appointed by management."></i>
-                        </div>
-                        <div class="fs-1 fw-bold text-white mt-2" id="kpi-total-filled">--</div>
-                        <div class="small text-white-50 mt-1">Direct appointments by Management</div>
+                        <div class="text-secondary small fw-bold">VERIFICATION STATUS</div>
+                        <div class="fs-1 fw-bold text-white mt-2" id="kpi-verification-rate">--%</div>
+                        <div class="small text-white-50 mt-1">Schools verified by DEO</div>
                     </div>
                 </div>
             </div>
-
-            <!-- Row 2 -->
-            <div class="col-lg-3 col-md-6">
-                <div class="card h-100 border-info">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div class="text-info small fw-bold">REPORTED TO GOVT</div>
-                            <i class="bi bi-arrow-up-right-circle text-white-50" data-bs-toggle="tooltip" title="Vacancies reported to the Employment Exchange for recruitment."></i>
-                        </div>
-                        <div class="fs-1 fw-bold text-white mt-2" id="kpi-total-reported">--</div>
-                        <div class="small text-white-50 mt-1">In recruitment pipeline</div>
-            <!-- UPDATED CARD: Non-Compliant Managements (Split View) -->
+            
+            <!-- NEW CARD: Non-Compliant Managements (Split View) -->
             <div class="col-lg-3 col-md-6">
                 <div class="card h-100 border-secondary">
                     <div class="card-body">
@@ -220,6 +233,7 @@
             </div>
 
             <!-- RESTORED CARD: RTI Entries -->
+            <!-- Note: ID kpi-rti-entries must match app.js -->
             <div class="col-lg-3 col-md-6">
                 <div class="card h-100">
                     <div class="card-body">

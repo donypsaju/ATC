@@ -164,11 +164,9 @@ function updateDashboard() {
     document.getElementById('kpi-verification-rate').textContent = `${verificationRate}%`;
     document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
     
-    // RTI Entries KPI (RESTORED LOGIC)
-    const rtiElement = document.getElementById('kpi-rti-entries');
-    if (rtiElement) {
-        rtiElement.textContent = candidateStats.totalRTIEntries.toLocaleString();
-    }
+    // RTI Entries KPI (This line was previously missing, causing the null error because the element was missing in HTML too)
+    // Now both HTML element and this JS line exist.
+    document.getElementById('kpi-rti-entries').textContent = candidateStats.totalRTIEntries.toLocaleString();
 
     // Calculate Non-Compliant Managements & Populate Modal
     let nonCompliantList = [];
