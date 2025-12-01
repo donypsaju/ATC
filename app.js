@@ -163,9 +163,14 @@ function updateDashboard() {
     document.getElementById('kpi-total-limbo').textContent = rosterStats.totalLimbo.toLocaleString();
     document.getElementById('kpi-verification-rate').textContent = `${verificationRate}%`;
     document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
-    // REMOVED: document.getElementById('kpi-rti-entries').textContent = candidateStats.totalRTIEntries.toLocaleString();
+    
+    // RTI Entries KPI (RESTORED LOGIC)
+    const rtiElement = document.getElementById('kpi-rti-entries');
+    if (rtiElement) {
+        rtiElement.textContent = candidateStats.totalRTIEntries.toLocaleString();
+    }
 
-    // NEW LOGIC: Calculate Non-Compliant Managements & Populate Modal
+    // Calculate Non-Compliant Managements & Populate Modal
     let nonCompliantList = [];
     allRosterData.forEach(entry => {
         let totalAppointments = 0;
@@ -181,7 +186,7 @@ function updateDashboard() {
         }
     });
     document.getElementById('kpi-non-compliant').textContent = nonCompliantList.length.toLocaleString();
-    populateNonCompliantModal(nonCompliantList); // Populate the modal list
+    populateNonCompliantModal(nonCompliantList); 
 
 
     if (filter.type === 'All') {
