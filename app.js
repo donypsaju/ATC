@@ -56,25 +56,23 @@ document.addEventListener("DOMContentLoaded", () => {
     initVisitorCounter(); // Start the counter
 });
 
-// --- Visitor Counter ---
+// --- Visitor Counter (UPDATED) ---
 async function initVisitorCounter() {
     const counterElements = document.querySelectorAll('.visitor-count-display');
-    const namespace = 'pwd-dashboard-kerala';
+    const namespace = 'pwd-reservation-kerala-v1'; 
     const key = 'visits';
     
     try {
-        const response = await fetch(`https://api.countapi.xyz/hit/${namespace}/${key}`);
+        const response = await fetch(`https://api.counterapi.dev/v1/${namespace}/${key}/up`);
         if (!response.ok) throw new Error('Counter API failed');
         const data = await response.json();
-        
         counterElements.forEach(el => {
-            el.textContent = data.value.toLocaleString();
+            el.textContent = data.count.toLocaleString();
         });
-        
     } catch (e) {
         console.warn("Visitor counter failed:", e);
         counterElements.forEach(el => {
-            el.textContent = "--";
+            el.textContent = "--"; 
         });
     }
 }
@@ -142,8 +140,6 @@ function setupFilterListeners() {
         }
     });
     
-    document.getElementById('global-search').addEventListener('input', handleGlobalSearch);
-    
     // AUDITOR Search Input Listeners
     const auditorInput = document.getElementById('auditor-search');
     auditorInput.addEventListener('input', handleAuditorSearch);
@@ -159,6 +155,7 @@ function updateDashboard() {
     
     const verificationRate = rosterStats.totalSchools > 0 ? ((rosterStats.totalVerified / rosterStats.totalSchools) * 100).toFixed(1) : 0;
     
+    // Update KPIs
     document.getElementById('kpi-total-owed').textContent = Math.round(rosterStats.totalPostsOwed).toLocaleString();
     document.getElementById('kpi-total-supply').textContent = candidateStats.totalSupply.toLocaleString();
     document.getElementById('kpi-total-filled').textContent = rosterStats.totalManagerAppointed.toLocaleString();
@@ -166,7 +163,25 @@ function updateDashboard() {
     document.getElementById('kpi-total-limbo').textContent = rosterStats.totalLimbo.toLocaleString();
     document.getElementById('kpi-verification-rate').textContent = `${verificationRate}%`;
     document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
-    document.getElementById('kpi-rti-entries').textContent = candidateStats.totalRTIEntries.toLocaleString();
+    
+    // NEW LOGIC: Calculate Non-Compliant Managements (Zero Appointments)
+    let nonCompliantCount = 0;
+    allRosterData.forEach(entry => {
+        let totalAppointments = 0;
+        // Check all 7 categories
+        for (let i = 1; i <= 7; i++) {
+            const catKey = `category_${String(i).padStart(2, '0')}`;
+            if (entry[catKey] && entry[catKey].length > 0) {
+                const d = entry[catKey][0];
+                totalAppointments += (d.appo_2017 || 0) + (d.appo_after_2017 || 0);
+            }
+        }
+        if (totalAppointments === 0) {
+            nonCompliantCount++;
+        }
+    });
+    document.getElementById('kpi-non-compliant').textContent = nonCompliantCount.toLocaleString();
+
 
     if (filter.type === 'All') {
         const nonTeachStats = processCandidateData({type: 'NonTeaching'});
@@ -302,7 +317,7 @@ function renderSupplyDemandChart(demand, supply) {
     chartInstances.supplyDemand = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Posts Owed (Net)', 'Candidates'],
+            labels: ['Posts Owed', 'Candidates'],
             datasets: [{ data: [demand, supply], backgroundColor: [CHART_COLORS.red, CHART_COLORS.blue] }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
@@ -363,53 +378,16 @@ function renderVerificationChart(verified, total) {
 
 // --- Search Logic ---
 function populateSearchFilters() {
-    const globalDatalist = document.getElementById('global-search-list');
     const auditorDatalist = document.getElementById('auditor-search-list');
     
     allRosterData.forEach(e => {
-        const option1 = new Option(`${e.name_of_management} (Management)`);
-        globalDatalist.appendChild(option1);
-        
         const option2 = new Option(e.name_of_management);
         auditorDatalist.appendChild(option2);
-    });
-    
-    allCandidateData.forEach(e => {
-        const option = new Option(`${e.Office_Name} (Employment Office)`);
-        globalDatalist.appendChild(option);
     });
 }
 
 function handleGlobalSearch(e) {
-    const val = e.target.value;
-    const mgmtContainer = document.getElementById('management-details-container');
-    const candContainer = document.getElementById('candidate-details-container');
-    const resultsRow = document.getElementById('search-results-row');
-
-    let mgmtEntry = null, candEntry = null;
-
-    if (val.includes("(Management)")) {
-        mgmtEntry = allRosterData.find(m => m.name_of_management === val.replace(" (Management)", ""));
-    } else if (val.includes("(Employment Office)")) {
-        candEntry = allCandidateData.find(m => m.Office_Name === val.replace(" (Employment Office)", ""));
-    } else {
-        mgmtEntry = allRosterData.find(m => m.name_of_management === val);
-        candEntry = allCandidateData.find(m => m.Office_Name === val);
-    }
-
-    mgmtContainer.style.display = 'none';
-    candContainer.style.display = 'none';
-    resultsRow.style.display = 'none';
-
-    if (mgmtEntry) {
-        renderManagementCard(mgmtEntry);
-        mgmtContainer.style.display = 'block';
-        resultsRow.style.display = 'flex';
-    } else if (candEntry) {
-        renderCandidateCard(candEntry);
-        candContainer.style.display = 'block';
-        resultsRow.style.display = 'flex';
-    }
+    // Deprecated for now since search bar is removed from UI
 }
 
 // --- Auditor Search Handler ---
@@ -560,68 +538,6 @@ function generateAuditorRows(entry) {
         `;
     }
     return html;
-}
-
-function renderManagementCard(entry) {
-    let tOwed = 0, tFilled = 0, tNotApproved = 0, tVacant = 0;
-    let html = `<thead class="table-light"><tr><th>Category</th><th>Owed (Net)</th><th>Filled</th><th>Backlog</th><th>Unreported</th><th>Vacant</th><th>Not Appr</th></tr></thead><tbody>`;
-
-    for (let i = 1; i <= 7; i++) {
-        const catName = getCategoryName(i);
-        const catKey = `category_${String(i).padStart(2, '0')}`;
-        let d = { appo_2017: 0, appo_after_2017: 0, manager_appo: 0, reported: 0, not_approved: 0, not_appointed: 0 };
-        if (entry[catKey] && entry[catKey].length > 0) d = entry[catKey][0];
-
-        const grossOwed = (d.appo_2017 * 0.03) + (d.appo_after_2017 * 0.04);
-        const filled = d.manager_appo || 0;
-        const netOwed = Math.max(0, grossOwed - filled);
-        const backlog = Math.ceil(netOwed);
-        const unreported = Math.max(0, backlog - (d.reported || 0));
-        const vacant = d.not_appointed || 0;
-        const notApproved = d.not_approved || 0;
-
-        tOwed += netOwed; tFilled += filled; tNotApproved += notApproved; tVacant += vacant;
-
-        html += `<tr>
-            <td>${catName}</td>
-            <td class="text-danger fw-bold">${netOwed.toFixed(2)}</td>
-            <td class="text-success">${filled}</td>
-            <td class="fw-bold">${backlog}</td>
-            <td class="text-warning">${unreported.toFixed(2)}</td>
-            <td class="text-muted">${vacant}</td>
-            <td class="text-danger">${notApproved}</td>
-        </tr>`;
-    }
-    html += '</tbody>';
-
-    document.getElementById('management-name').textContent = entry.name_of_management;
-    document.getElementById('mgmt-kpi-status').textContent = `${entry.verf_status[0]} / ${entry.verf_status[1]}`;
-    document.getElementById('mgmt-kpi-owed').textContent = tOwed.toFixed(2);
-    document.getElementById('mgmt-kpi-filled').textContent = tFilled;
-    document.getElementById('mgmt-kpi-not-approved').textContent = tNotApproved;
-    document.getElementById('mgmt-kpi-vacant').textContent = tVacant;
-    document.getElementById('management-table').innerHTML = html;
-}
-
-function renderCandidateCard(entry) {
-    document.getElementById('office-name').textContent = entry.Office_Name;
-    const ctx = document.getElementById('candidateOfficeChart').getContext('2d');
-    destroyChart('candidate');
-    
-    const labels = ['NonTeaching', 'LPST', 'UPST', 'HST', 'HSST'];
-    chartInstances.candidate = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                { label: 'Visually Impaired', data: labels.map(l => entry[l].VisuallyImpaired), backgroundColor: CHART_COLORS.blue },
-                { label: 'Hearing Impairment', data: labels.map(l => entry[l].HearingImpairment), backgroundColor: CHART_COLORS.orange },
-                { label: 'LD', data: labels.map(l => entry[l].LD), backgroundColor: CHART_COLORS.green },
-                { label: 'Others', data: labels.map(l => entry[l].Others), backgroundColor: CHART_COLORS.grey },
-            ]
-        },
-        options: { responsive: true, maintainAspectRatio: false, scales: { x: { stacked: true }, y: { stacked: true } } }
-    });
 }
 
 function getCategoryName(i) {
