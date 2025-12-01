@@ -7,13 +7,13 @@
     
     <!-- --- GOOGLE ANALYTICS START --- -->
     <!-- Replace 'G-XXXXXXXXXX' with your actual Measurement ID -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-GDTB74MSLR"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
 
-      gtag('config', 'G-GDTB74MSLR');
+      gtag('config', 'G-XXXXXXXXXX');
     </script>
     <!-- --- GOOGLE ANALYTICS END --- -->
 
@@ -189,31 +189,31 @@
                         </div>
                         <div class="fs-1 fw-bold text-white mt-2" id="kpi-total-reported">--</div>
                         <div class="small text-white-50 mt-1">In recruitment pipeline</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="text-secondary small fw-bold">VERIFICATION STATUS</div>
-                        <div class="fs-1 fw-bold text-white mt-2" id="kpi-verification-rate">--%</div>
-                        <div class="small text-white-50 mt-1">Schools verified by DEO</div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- NEW CARD: Non-Compliant Managements (Clickable) -->
+            <!-- UPDATED CARD: Non-Compliant Managements (Split View) -->
             <div class="col-lg-3 col-md-6">
                 <div class="card h-100 border-secondary">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between">
-                            <div class="text-secondary small fw-bold">ROSTER NOT SUBMITTED</div>
-                            <i class="bi bi-clipboard-x text-white-50" data-bs-toggle="tooltip" title="Managements that have recorded 0 appointments in all categories."></i>
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="text-secondary small fw-bold">ROSTER COMPLIANCE</div>
+                            <i class="bi bi-clipboard-check text-white-50" data-bs-toggle="tooltip" title="Comparison of total managements vs those who have not submitted any roster data (Zero appointments)."></i>
                         </div>
-                        <div class="fs-1 fw-bold text-white mt-2" id="kpi-non-compliant">--</div>
-                        <div class="d-flex justify-content-between align-items-center mt-1">
-                            <span class="small text-white-50">Zero appointments</span>
-                            <button class="btn btn-sm btn-outline-light py-0" data-bs-toggle="modal" data-bs-target="#nonCompliantModal">View List</button>
+                        
+                        <div class="row g-0 text-center">
+                            <!-- Section 1: Total Managements -->
+                            <div class="col-6 border-end border-secondary pe-2">
+                                <div class="fs-2 fw-bold text-white" id="kpi-total-managements">--</div>
+                                <div class="small text-white-50" style="font-size: 0.75rem;">Total Tracked</div>
+                            </div>
+                            
+                            <!-- Section 2: Non-Compliant -->
+                            <div class="col-6 ps-2">
+                                <div class="fs-2 fw-bold text-warning" id="kpi-non-compliant">--</div>
+                                <div class="small text-white-50" style="font-size: 0.75rem;">Not Submitted</div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-3">
+                            <button class="btn btn-sm btn-outline-secondary py-1" data-bs-toggle="modal" data-bs-target="#nonCompliantModal">View Non-Compliant List</button>
                         </div>
                     </div>
                 </div>
