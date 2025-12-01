@@ -56,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
     initVisitorCounter(); 
 });
 
-// --- Visitor Counter ---
+// --- Visitor Counter (UPDATED) ---
 async function initVisitorCounter() {
     const counterElements = document.querySelectorAll('.visitor-count-display');
     const namespace = 'pwd-reservation-kerala-v1'; 
@@ -163,7 +163,7 @@ function updateDashboard() {
     document.getElementById('kpi-total-limbo').textContent = rosterStats.totalLimbo.toLocaleString();
     document.getElementById('kpi-verification-rate').textContent = `${verificationRate}%`;
     document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
-    document.getElementById('kpi-rti-entries').textContent = candidateStats.totalRTIEntries.toLocaleString();
+    // REMOVED: document.getElementById('kpi-rti-entries').textContent = candidateStats.totalRTIEntries.toLocaleString();
 
     // NEW LOGIC: Calculate Non-Compliant Managements & Populate Modal
     let nonCompliantList = [];
