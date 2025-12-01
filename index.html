@@ -44,76 +44,68 @@
 </head>
 <body class="bg-dark text-white">
 
-    <!-- 1. HEADER (Search Bar Removed) -->
+    <!-- 1. HEADER (Minimal) -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom border-secondary sticky-top px-3">
         <div class="container-fluid">
             <a class="navbar-brand fw-bold text-warning" href="#">
-                <i class="bi bi-bar-chart-line-fill me-2"></i>PWD Reservation
+                <i class="bi bi-bar-chart-line-fill me-2"></i>PWD Reservation Dashboard
             </a>
-            
-            <!-- Mobile Toggle Button -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <div class="d-flex flex-column flex-lg-row gap-2 ms-auto mt-2 mt-lg-0 justify-content-end align-items-center">
-                    
-                    <div class="d-flex gap-2">
-                        <!-- Info Button -->
-                        <button class="btn btn-outline-info text-nowrap" data-bs-toggle="modal" data-bs-target="#projectInfoModal">
-                            <i class="bi bi-info-circle"></i> About
-                        </button>
-                        
-                        <!-- Contribute Button -->
-                        <a href="https://forms.gle/S8yEWBqR2XWNdtBj9" target="_blank" class="btn btn-outline-success text-nowrap">
-                            <i class="bi bi-plus-circle"></i> Contribute
-                        </a>
-                    </div>
-                </div>
-                
-                <div class="d-flex flex-column text-end ms-lg-3 mt-2 mt-lg-0">
-                    <span class="small text-muted" id="roster-update-time">Roster: Loading...</span>
-                    <span class="small text-muted" id="candidate-update-time">Candidates: Loading...</span>
-                </div>
-            </div>
         </div>
     </nav>
 
     <!-- 2. SEARCH RESULTS (Only triggered by Auditor Search now) -->
     <div class="container-fluid mb-4 mt-3" id="search-results-row" style="display: none;">
-        <!-- This container is effectively deprecated since global search is gone, 
-             but we'll leave the structure in case you want to repurpose it or show
-             details via another interaction later. -->
+        <!-- Container preserved for future expansion if needed -->
     </div>
 
     <!-- 3. MAIN DASHBOARD -->
     <div class="container-fluid my-3">
         
-        <!-- Filters -->
+        <!-- ROW 1: Filters & Actions (Consolidated) -->
         <div class="row g-3 mb-3">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-body d-flex flex-wrap gap-3 align-items-center justify-content-center justify-content-md-start">
-                        <div class="filter-group">
-                            <div class="text-white-50 small mb-1 fw-bold"><i class="bi bi-funnel me-1"></i>Filter Data By</div>
-                            <div class="btn-group" role="group" id="filter-main">
-                                <button type="button" class="btn btn-outline-primary active" data-filter="All">All Posts</button>
-                                <button type="button" class="btn btn-outline-primary" data-filter="Teaching">Teaching</button>
-                                <button type="button" class="btn btn-outline-primary" data-filter="NonTeaching">Non-Teaching</button>
+                    <div class="card-body d-flex flex-column flex-lg-row gap-3 justify-content-between align-items-lg-center">
+                        
+                        <!-- Left: Filters -->
+                        <div class="d-flex flex-wrap gap-3 align-items-center">
+                            <div class="filter-group">
+                                <div class="text-white-50 small mb-1 fw-bold"><i class="bi bi-funnel me-1"></i>Filter Data By</div>
+                                <div class="btn-group" role="group" id="filter-main">
+                                    <button type="button" class="btn btn-outline-primary active" data-filter="All">All Posts</button>
+                                    <button type="button" class="btn btn-outline-primary" data-filter="Teaching">Teaching</button>
+                                    <button type="button" class="btn btn-outline-primary" data-filter="NonTeaching">Non-Teaching</button>
+                                </div>
+                            </div>
+                            <div class="filter-group" id="sub-filter-container" style="display: none;">
+                                <div class="text-white-50 small mb-1 fw-bold">Teaching Category</div>
+                                <div class="btn-group btn-group-xs flex-wrap" role="group" id="filter-sub">
+                                    <button type="button" class="btn btn-outline-secondary active" data-filter="All">All Teaching</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-filter="Primary">Primary (LP+UP)</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-filter="LPST">LPST</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-filter="UPST">UPST</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-filter="HST">HST</button>
+                                    <button type="button" class="btn btn-outline-secondary" data-filter="HSST">HSST</button>
+                                </div>
                             </div>
                         </div>
-                        <div class="filter-group" id="sub-filter-container" style="display: none;">
-                            <div class="text-white-50 small mb-1 fw-bold">Teaching Category</div>
-                            <div class="btn-group btn-group-xs flex-wrap" role="group" id="filter-sub">
-                                <button type="button" class="btn btn-outline-secondary active" data-filter="All">All Teaching</button>
-                                <button type="button" class="btn btn-outline-secondary" data-filter="Primary">Primary (LP+UP)</button>
-                                <button type="button" class="btn btn-outline-secondary" data-filter="LPST">LPST</button>
-                                <button type="button" class="btn btn-outline-secondary" data-filter="UPST">UPST</button>
-                                <button type="button" class="btn btn-outline-secondary" data-filter="HST">HST</button>
-                                <button type="button" class="btn btn-outline-secondary" data-filter="HSST">HSST</button>
+
+                        <!-- Right: Actions & Dates -->
+                        <div class="d-flex flex-column align-items-lg-end gap-2">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#projectInfoModal">
+                                    <i class="bi bi-info-circle"></i> About
+                                </button>
+                                <a href="https://forms.gle/S8yEWBqR2XWNdtBj9" target="_blank" class="btn btn-sm btn-outline-success">
+                                    <i class="bi bi-plus-circle"></i> Contribute
+                                </a>
+                            </div>
+                            <div class="text-white-50 small text-lg-end">
+                                <div id="roster-update-time">Roster: Loading...</div>
+                                <div id="candidate-update-time">Candidates: Loading...</div>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -209,26 +201,31 @@
                     </div>
                 </div>
             </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <div class="text-secondary small fw-bold">MANAGEMENTS TRACKED</div>
-                        <div class="fs-1 fw-bold text-white mt-2" id="kpi-total-managements">--</div>
-                        <div class="small text-white-50 mt-1">Corporate + Individual</div>
-                    </div>
-                </div>
-            </div>
             
-            <!-- NEW CARD: Non-Compliant Managements -->
+            <!-- NEW CARD: Non-Compliant Managements (Clickable) -->
             <div class="col-lg-3 col-md-6">
                 <div class="card h-100 border-secondary">
                     <div class="card-body">
                         <div class="d-flex justify-content-between">
                             <div class="text-secondary small fw-bold">ROSTER NOT SUBMITTED</div>
-                            <i class="bi bi-clipboard-x text-white-50" data-bs-toggle="tooltip" title="Managements that have recorded 0 appointments in all categories (Pre-2017 & Post-2017)."></i>
+                            <i class="bi bi-clipboard-x text-white-50" data-bs-toggle="tooltip" title="Managements that have recorded 0 appointments in all categories."></i>
                         </div>
                         <div class="fs-1 fw-bold text-white mt-2" id="kpi-non-compliant">--</div>
-                        <div class="small text-white-50 mt-1">Zero appointments recorded</div>
+                        <div class="d-flex justify-content-between align-items-center mt-1">
+                            <span class="small text-white-50">Zero appointments</span>
+                            <button class="btn btn-sm btn-outline-light py-0" data-bs-toggle="modal" data-bs-target="#nonCompliantModal">View List</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NEW CARD: RTI Entries (Re-added) -->
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <div class="text-secondary small fw-bold">DATA SOURCES (RTI)</div>
+                        <div class="fs-1 fw-bold text-white mt-2" id="kpi-rti-entries">--</div>
+                        <div class="small text-white-50 mt-1">Employment Exchanges Data</div>
                     </div>
                 </div>
             </div>
@@ -404,6 +401,37 @@
                 </div>
                 <div class="modal-footer border-secondary">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. NEW MODAL: Non-Compliant Managements -->
+    <div class="modal fade" id="nonCompliantModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content bg-dark text-white border-secondary">
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-secondary"><i class="bi bi-clipboard-x me-2"></i>Roster Not Submitted</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="text" id="nc-search" class="form-control bg-dark text-white border-secondary" placeholder="Search in this list...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-dark table-striped table-hover table-sm">
+                            <thead class="sticky-top">
+                                <tr>
+                                    <th>Management Name</th>
+                                    <th>Schools Verified</th>
+                                    <th>Total Schools</th>
+                                </tr>
+                            </thead>
+                            <tbody id="nc-table-body">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>

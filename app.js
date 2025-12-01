@@ -53,10 +53,10 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchTimestamps();
     loadAllData();
     setupFilterListeners();
-    initVisitorCounter(); // Start the counter
+    initVisitorCounter(); 
 });
 
-// --- Visitor Counter (UPDATED) ---
+// --- Visitor Counter ---
 async function initVisitorCounter() {
     const counterElements = document.querySelectorAll('.visitor-count-display');
     const namespace = 'pwd-reservation-kerala-v1'; 
@@ -163,12 +163,12 @@ function updateDashboard() {
     document.getElementById('kpi-total-limbo').textContent = rosterStats.totalLimbo.toLocaleString();
     document.getElementById('kpi-verification-rate').textContent = `${verificationRate}%`;
     document.getElementById('kpi-total-managements').textContent = allRosterData.length.toLocaleString();
-    
-    // NEW LOGIC: Calculate Non-Compliant Managements (Zero Appointments)
-    let nonCompliantCount = 0;
+    document.getElementById('kpi-rti-entries').textContent = candidateStats.totalRTIEntries.toLocaleString();
+
+    // NEW LOGIC: Calculate Non-Compliant Managements & Populate Modal
+    let nonCompliantList = [];
     allRosterData.forEach(entry => {
         let totalAppointments = 0;
-        // Check all 7 categories
         for (let i = 1; i <= 7; i++) {
             const catKey = `category_${String(i).padStart(2, '0')}`;
             if (entry[catKey] && entry[catKey].length > 0) {
@@ -177,10 +177,11 @@ function updateDashboard() {
             }
         }
         if (totalAppointments === 0) {
-            nonCompliantCount++;
+            nonCompliantList.push(entry);
         }
     });
-    document.getElementById('kpi-non-compliant').textContent = nonCompliantCount.toLocaleString();
+    document.getElementById('kpi-non-compliant').textContent = nonCompliantList.length.toLocaleString();
+    populateNonCompliantModal(nonCompliantList); // Populate the modal list
 
 
     if (filter.type === 'All') {
@@ -205,6 +206,50 @@ function updateDashboard() {
     renderCandidateDisabilityChart(candidateStats.supplyByDisability);
 
     renderKeyFindings();
+}
+
+/**
+ * Populates the Non-Compliant Modal List
+ */
+function populateNonCompliantModal(list) {
+    // Sort by Total Schools (descending)
+    list.sort((a, b) => {
+        const schoolsA = a.verf_status[1] || 0;
+        const schoolsB = b.verf_status[1] || 0;
+        return schoolsB - schoolsA;
+    });
+
+    const tbody = document.getElementById('nc-table-body');
+    let html = '';
+    
+    list.forEach(item => {
+        const verified = item.verf_status[0] || 0;
+        const total = item.verf_status[1] || 0;
+        html += `
+            <tr>
+                <td>${item.name_of_management}</td>
+                <td>${verified}</td>
+                <td>${total}</td>
+            </tr>
+        `;
+    });
+    
+    tbody.innerHTML = html;
+
+    // Add search listener specific to this modal
+    const searchInput = document.getElementById('nc-search');
+    // Remove old listener to prevent duplicates if function called multiple times
+    const newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+    
+    newSearchInput.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const text = row.cells[0].textContent.toLowerCase();
+            row.style.display = text.includes(term) ? '' : 'none';
+        });
+    });
 }
 
 function getActiveFilter() {
@@ -317,7 +362,7 @@ function renderSupplyDemandChart(demand, supply) {
     chartInstances.supplyDemand = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ['Posts Owed', 'Candidates'],
+            labels: ['Posts Owed (Net)', 'Candidates'],
             datasets: [{ data: [demand, supply], backgroundColor: [CHART_COLORS.red, CHART_COLORS.blue] }]
         },
         options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
