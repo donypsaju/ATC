@@ -1284,11 +1284,11 @@
       "Total": 17
     },
     "HSST": {
-      "VisuallyImpaired": 0,
-      "HearingImpairment": 0,
-      "LD": 1,
-      "Others": 0,
-      "Total": 1
+      "VisuallyImpaired": 21,
+      "HearingImpairment": 3,
+      "LD": 43,
+      "Others": 5,
+      "Total": 72
     }
   },
   {
@@ -2125,6 +2125,538 @@
       "LD": 2,
       "Others": 0,
       "Total": 3
+    }
+  },
+  {
+    "Office_Name": "Thaliparamba",
+    "NonTeaching": {
+      "VisuallyImpaired": 326,
+      "HearingImpairment": 337,
+      "LD": 794,
+      "Others": 0,
+      "Total": 1457
+    },
+    "LPST": {
+      "VisuallyImpaired": 9,
+      "HearingImpairment": 1,
+      "LD": 11,
+      "Others": 0,
+      "Total": 21
+    },
+    "UPST": {
+      "VisuallyImpaired": 20,
+      "HearingImpairment": 1,
+      "LD": 17,
+      "Others": 0,
+      "Total": 38
+    },
+    "HST": {
+      "VisuallyImpaired": 18,
+      "HearingImpairment": 1,
+      "LD": 16,
+      "Others": 0,
+      "Total": 35
+    },
+    "HSST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": "Kannur",
+    "NonTeaching": {
+      "VisuallyImpaired": 180,
+      "HearingImpairment": 193,
+      "LD": 410,
+      "Others": 130,
+      "Total": 913
+    },
+    "LPST": {
+      "VisuallyImpaired": 5,
+      "HearingImpairment": 1,
+      "LD": 3,
+      "Others": 0,
+      "Total": 9
+    },
+    "UPST": {
+      "VisuallyImpaired": 10,
+      "HearingImpairment": 1,
+      "LD": 12,
+      "Others": 1,
+      "Total": 24
+    },
+    "HST": {
+      "VisuallyImpaired": 5,
+      "HearingImpairment": 0,
+      "LD": 4,
+      "Others": 1,
+      "Total": 10
+    },
+    "HSST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 3,
+      "Others": 0,
+      "Total": 4
+    }
+  },
+  {
+    "Office_Name": "Vadakara",
+    "NonTeaching": {
+      "VisuallyImpaired": 121,
+      "HearingImpairment": 197,
+      "LD": 469,
+      "Others": 0,
+      "Total": 787
+    },
+    "LPST": {
+      "VisuallyImpaired": 10,
+      "HearingImpairment": 2,
+      "LD": 6,
+      "Others": 0,
+      "Total": 18
+    },
+    "UPST": {
+      "VisuallyImpaired": 28,
+      "HearingImpairment": 3,
+      "LD": 22,
+      "Others": 0,
+      "Total": 53
+    },
+    "HST": {
+      "VisuallyImpaired": 16,
+      "HearingImpairment": 1,
+      "LD": 14,
+      "Others": 0,
+      "Total": 31
+    },
+    "HSST": {
+      "VisuallyImpaired": 11,
+      "HearingImpairment": 1,
+      "LD": 4,
+      "Others": 0,
+      "Total": 16
+    }
+  },
+  {
+    "Office_Name": "Thrissur",
+    "NonTeaching": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 2179,
+      "Total": 2179
+    },
+    "LPST": {
+      "VisuallyImpaired": 3,
+      "HearingImpairment": 3,
+      "LD": 4,
+      "Others": 0,
+      "Total": 10
+    },
+    "UPST": {
+      "VisuallyImpaired": 9,
+      "HearingImpairment": 5,
+      "LD": 15,
+      "Others": 2,
+      "Total": 31
+    },
+    "HST": {
+      "VisuallyImpaired": 6,
+      "HearingImpairment": 2,
+      "LD": 11,
+      "Others": 2,
+      "Total": 21
+    },
+    "HSST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": "Kanjirappally",
+    "NonTeaching": {
+      "VisuallyImpaired": 49,
+      "HearingImpairment": 79,
+      "LD": 185,
+      "Others": 0,
+      "Total": 313
+    },
+    "LPST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 2,
+      "Others": 0,
+      "Total": 2
+    },
+    "UPST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 5,
+      "Others": 0,
+      "Total": 5
+    },
+    "HST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 3,
+      "Others": 0,
+      "Total": 3
+    },
+    "HSST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 1,
+      "Others": 0,
+      "Total": 1
+    }
+  },
+  {
+    "Office_Name": "Kochi",
+    "NonTeaching": {
+      "VisuallyImpaired": 83,
+      "HearingImpairment": 169,
+      "LD": 367,
+      "Others": 0,
+      "Total": 619
+    },
+    "LPST": {
+      "VisuallyImpaired": 3,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 3
+    },
+    "UPST": {
+      "VisuallyImpaired": 3,
+      "HearingImpairment": 0,
+      "LD": 3,
+      "Others": 0,
+      "Total": 6
+    },
+    "HST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 3,
+      "Others": 0,
+      "Total": 3
+    },
+    "HSST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": "Thamarassery",
+    "NonTeaching": {
+      "VisuallyImpaired": 66,
+      "HearingImpairment": 120,
+      "LD": 264,
+      "Others": 0,
+      "Total": 450
+    },
+    "LPST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 1,
+      "LD": 1,
+      "Others": 0,
+      "Total": 4
+    },
+    "UPST": {
+      "VisuallyImpaired": 4,
+      "HearingImpairment": 3,
+      "LD": 2,
+      "Others": 0,
+      "Total": 9
+    },
+    "HST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 0,
+      "LD": 1,
+      "Others": 0,
+      "Total": 3
+    },
+    "HSST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 1,
+      "LD": 1,
+      "Others": 0,
+      "Total": 4
+    }
+  },
+  {
+    "Office_Name": "Palakkad",
+    "NonTeaching": {
+      "VisuallyImpaired": 86,
+      "HearingImpairment": 249,
+      "LD": 779,
+      "Others": 207,
+      "Total": 1321
+    },
+    "LPST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    },
+    "UPST": {
+      "VisuallyImpaired": 4,
+      "HearingImpairment": 1,
+      "LD": 7,
+      "Others": 0,
+      "Total": 12
+    },
+    "HST": {
+      "VisuallyImpaired": 3,
+      "HearingImpairment": 1,
+      "LD": 5,
+      "Others": 0,
+      "Total": 9
+    },
+    "HSST": {
+      "VisuallyImpaired": 4,
+      "HearingImpairment": 0,
+      "LD": 3,
+      "Others": 0,
+      "Total": 7
+    }
+  },
+  {
+    "Office_Name": "Karunagappally",
+    "NonTeaching": {
+      "VisuallyImpaired": 140,
+      "HearingImpairment": 237,
+      "LD": 731,
+      "Others": 0,
+      "Total": 1108
+    },
+    "LPST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 0,
+      "LD": 4,
+      "Others": 0,
+      "Total": 6
+    },
+    "UPST": {
+      "VisuallyImpaired": 7,
+      "HearingImpairment": 0,
+      "LD": 11,
+      "Others": 0,
+      "Total": 18
+    },
+    "HST": {
+      "VisuallyImpaired": 5,
+      "HearingImpairment": 0,
+      "LD": 7,
+      "Others": 0,
+      "Total": 12
+    },
+    "HSST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 0,
+      "LD": 1,
+      "Others": 0,
+      "Total": 3
+    }
+  },
+  {
+    "Office_Name": "Kuttippuram",
+    "NonTeaching": {
+      "VisuallyImpaired": 42,
+      "HearingImpairment": 58,
+      "LD": 124,
+      "Others": 86,
+      "Total": 310
+    },
+    "LPST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 4,
+      "Others": 0,
+      "Total": 4
+    },
+    "UPST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 9,
+      "Others": 0,
+      "Total": 10
+    },
+    "HST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 2,
+      "Others": 0,
+      "Total": 3
+    },
+    "HSST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": "Perinthalmanna",
+    "NonTeaching": {
+      "VisuallyImpaired": 54,
+      "HearingImpairment": 67,
+      "LD": 186,
+      "Others": 0,
+      "Total": 307
+    },
+    "LPST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 0,
+      "LD": 2,
+      "Others": 0,
+      "Total": 4
+    },
+    "UPST": {
+      "VisuallyImpaired": 10,
+      "HearingImpairment": 1,
+      "LD": 10,
+      "Others": 0,
+      "Total": 21
+    },
+    "HST": {
+      "VisuallyImpaired": 8,
+      "HearingImpairment": 1,
+      "LD": 8,
+      "Others": 0,
+      "Total": 17
+    },
+    "HSST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    }
+  },
+  {
+    "Office_Name": "Chengannoor",
+    "NonTeaching": {
+      "VisuallyImpaired": 71,
+      "HearingImpairment": 108,
+      "LD": 215,
+      "Others": 0,
+      "Total": 394
+    },
+    "LPST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 1
+    },
+    "UPST": {
+      "VisuallyImpaired": 4,
+      "HearingImpairment": 0,
+      "LD": 5,
+      "Others": 0,
+      "Total": 9
+    },
+    "HST": {
+      "VisuallyImpaired": 2,
+      "HearingImpairment": 0,
+      "LD": 4,
+      "Others": 0,
+      "Total": 6
+    },
+    "HSST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 1,
+      "Others": 0,
+      "Total": 2
+    }
+  },
+  {
+    "Office_Name": "Tirurangadi",
+    "NonTeaching": {
+      "VisuallyImpaired": 143,
+      "HearingImpairment": 193,
+      "LD": 608,
+      "Others": 314,
+      "Total": 1258
+    },
+    "LPST": {
+      "VisuallyImpaired": 0,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 0
+    },
+    "UPST": {
+      "VisuallyImpaired": 5,
+      "HearingImpairment": 0,
+      "LD": 4,
+      "Others": 0,
+      "Total": 9
+    },
+    "HST": {
+      "VisuallyImpaired": 3,
+      "HearingImpairment": 0,
+      "LD": 4,
+      "Others": 0,
+      "Total": 7
+    },
+    "HSST": {
+      "VisuallyImpaired": 1,
+      "HearingImpairment": 0,
+      "LD": 2,
+      "Others": 0,
+      "Total": 3
+    }
+  },
+  {
+    "Office_Name": "Kattappana",
+    "NonTeaching": {
+      "VisuallyImpaired": 39,
+      "HearingImpairment": 95,
+      "LD": 144,
+      "Others": 48,
+      "Total": 326
+    },
+    "LPST": {
+      "VisuallyImpaired": 3,
+      "HearingImpairment": 0,
+      "LD": 0,
+      "Others": 0,
+      "Total": 3
+    },
+    "UPST": {
+      "VisuallyImpaired": 9,
+      "HearingImpairment": 2,
+      "LD": 6,
+      "Others": 0,
+      "Total": 17
+    },
+    "HST": {
+      "VisuallyImpaired": 8,
+      "HearingImpairment": 2,
+      "LD": 4,
+      "Others": 0,
+      "Total": 14
+    },
+    "HSST": {
+      "VisuallyImpaired": 3,
+      "HearingImpairment": 1,
+      "LD": 2,
+      "Others": 0,
+      "Total": 6
     }
   }
 ]
